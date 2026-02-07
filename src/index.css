@@ -1,0 +1,270 @@
+/*
+  Josh's Custom CSS Reset
+  https://www.joshwcomeau.com/css/custom-css-reset/
+*/
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+*:not(dialog) {
+  margin: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    interpolate-size: allow-keywords;
+  }
+}
+
+body {
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+img, picture, video, canvas, svg {
+  display: block;
+  max-width: 100%;
+}
+
+input, button, textarea, select {
+  font: inherit;
+}
+
+p, h1, h2, h3, h4, h5, h6 {
+  overflow-wrap: break-word;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  text-wrap: balance;
+}
+
+#root, #__next {
+  isolation: isolate;
+}
+
+:root {
+  /* Font families */
+  --font-sans: 'Open Sans', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Base font settings */
+  font-family: var(--font-sans);
+  line-height: 1.5;
+  font-weight: 400;
+  color-scheme: dark;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  /* ============================================
+     TIER 1: Color Definitions
+     ============================================ */
+
+  /* Base colors */
+  --midnight: #1e1e1e;
+  --navy: #252525;
+  --ocean: #333333;
+  --abyss: #141414;
+
+  /* Blues */
+  --azure: #4a90d9;
+  --deep-blue: #1e3a5f;
+  --slate-blue: #2a4a6f;
+  --sky: #a5d6ff;
+  --teal: #1a5a8a;
+  --steel: #1a3a5c;
+
+  /* Greens */
+  --emerald: #10b981;
+  --forest: #1e4d3a;
+  --jade: #059669;
+
+  /* Purples */
+  --violet: #8b5cf6;
+  --plum: #2d1f4e;
+
+  /* Oranges */
+  --amber: #f59e0b;
+  --bronze: #4a3728;
+  --peach: #ffc078;
+
+  /* Reds */
+  --crimson: #e94560;
+  --coral: #ffa8a8;
+  --wine: #2d1f1f;
+
+  /* Neutrals */
+  --white: #ffffff;
+  --ivory: #fffff0;
+  --smoke: #eeeeee;
+  --silver: #cccccc;
+  --gray: #888888;
+  --charcoal: #555555;
+  --graphite: #444444;
+
+  /* ============================================
+     TIER 2: Semantic Usage
+     ============================================ */
+
+  /* Layout backgrounds */
+  --bg-app: var(--midnight);
+  --bg-toolbar: var(--navy);
+  --bg-canvas: var(--ivory);
+  --bg-input: var(--midnight);
+  --bg-button: var(--ocean);
+  --bg-button-hover: var(--teal);
+  --bg-error: var(--wine);
+
+  /* Borders */
+  --border-primary: var(--ocean);
+  --border-error: var(--crimson);
+
+  /* Text */
+  --text-primary: var(--smoke);
+  --text-secondary: var(--silver);
+  --text-code: var(--sky);
+  --text-muted: var(--charcoal);
+  --text-error: var(--coral);
+  --text-error-label: var(--crimson);
+  --text-path: var(--peach);
+
+  /* Entity types (stroke/fill pairs) */
+  --entity-class-stroke: var(--azure);
+  --entity-class-fill: var(--deep-blue);
+  --entity-interface-stroke: var(--azure);
+  --entity-interface-fill: var(--deep-blue);
+  --entity-module-stroke: var(--emerald);
+  --entity-module-fill: var(--forest);
+  --entity-abstract-stroke: var(--violet);
+  --entity-abstract-fill: var(--plum);
+  --entity-type-stroke: var(--amber);
+  --entity-type-fill: var(--bronze);
+
+  /* SVG/diagram elements */
+  --diagram-line: var(--charcoal);
+  --diagram-separator: var(--charcoal);
+  --diagram-header: var(--smoke);
+  --diagram-member: var(--silver);
+  --diagram-stereotype: var(--gray);
+
+  /* Controls */
+  --control-bg: var(--navy);
+  --control-border: var(--ocean);
+  --control-hover: var(--steel);
+  --control-text: var(--smoke);
+
+  /* Buttons */
+  --btn-primary-bg: var(--emerald);
+  --btn-primary-border: var(--emerald);
+  --btn-primary-hover: var(--jade);
+  --btn-secondary-bg: var(--deep-blue);
+  --btn-secondary-border: var(--azure);
+  --btn-secondary-hover: var(--slate-blue);
+
+  /* ============================================
+     TIER 1: Base Spacing Values
+     ============================================ */
+
+  /* Base: 1rem = 16px */
+  --space-xs: 0.25rem;   /* 4px */
+  --space-sm: 0.5rem;    /* 8px */
+  --space-md: 0.75rem;   /* 12px */
+  --space-lg: 1rem;      /* 16px */
+
+  /* Font sizes */
+  --font-xs: 0.625rem;   /* 10px */
+  --font-sm: 0.6875rem;  /* 11px */
+  --font-base: 0.75rem;  /* 12px */
+  --font-md: 0.8125rem;  /* 13px */
+  --font-lg: 0.875rem;   /* 14px */
+  --font-lg2: 1rem;      /* 16px */
+  --font-xl: 1.125rem;   /* 18px */
+
+  /* Sizes */
+  --size-control: 2rem;  /* 32px */
+  --size-scrollable-max: 9.375rem;  /* 150px */
+
+  /* Transitions */
+  --transition-fast: 0.15s;
+
+  /* ============================================
+     TIER 2: Semantic Spacing Usage
+     ============================================ */
+
+  /* Toolbar */
+  --toolbar-padding-y: var(--space-md);
+  --toolbar-padding-x: var(--space-lg);
+  --toolbar-gap: var(--space-sm);
+
+  /* Editor */
+  --editor-header-padding-y: var(--space-xs);
+  --editor-header-padding-x: var(--space-sm);
+  --editor-textarea-padding: var(--space-lg);
+
+  /* Button */
+  --button-padding-y: var(--space-sm);
+  --button-padding-x: var(--space-lg);
+  --button-small-padding-y: var(--space-xs);
+  --button-small-padding-x: var(--space-sm);
+  --button-gap: var(--space-xs);
+
+  /* Validation errors */
+  --validation-padding-y: var(--space-md);
+  --validation-padding-x: var(--space-lg);
+  --validation-error-gap: var(--space-xs);
+
+  /* Controls (zoom buttons) */
+  --controls-position: var(--space-lg);
+  --controls-gap: var(--space-xs);
+
+  /* Tabs */
+  --tab-bg: var(--navy);
+  --tab-active-bg: var(--ocean);
+  --tab-text: var(--text-secondary);
+  --tab-text-active: var(--text-primary);
+  --tab-padding-y: var(--space-sm);
+  --tab-padding-x: var(--space-lg);
+  --tab-gap: var(--space-xs);
+
+  /* Gherkin keywords */
+  --gherkin-given: var(--azure);
+  --gherkin-when: var(--amber);
+  --gherkin-then: var(--emerald);
+  --gherkin-and: var(--silver);
+  --gherkin-but: var(--violet);
+
+  /* Use case panel */
+  --usecase-card-bg: var(--navy);
+  --usecase-card-border: var(--ocean);
+  --usecase-card-padding: var(--space-lg);
+  --usecase-card-gap: var(--space-md);
+  --usecase-scenario-bg: var(--midnight);
+  --usecase-scenario-padding: var(--space-md);
+
+  /* Font sizes semantic */
+  --font-stereotype: var(--font-xs);
+  --font-label: var(--font-sm);
+  --font-member: var(--font-sm);
+  --font-validation: var(--font-base);
+  --font-button: var(--font-base);
+  --font-textarea: var(--font-md);
+  --font-entity-header: var(--font-lg);
+  --font-empty-message: var(--font-lg);
+  --font-control: var(--font-lg2);
+  --font-title: var(--font-xl);
+}
+
+html,
+body,
+#root {
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}

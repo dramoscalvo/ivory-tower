@@ -1,0 +1,56 @@
+.box {
+  cursor: default;
+}
+
+.box:hover .background {
+  filter: brightness(1.1);
+}
+
+.background {
+  stroke-width: 2;
+}
+
+.classType {
+  fill: var(--entity-class-fill);
+  stroke: var(--entity-class-stroke);
+}
+
+.interfaceType {
+  fill: var(--entity-interface-fill);
+  stroke: var(--entity-interface-stroke);
+  stroke-dasharray: 6 3;
+}
+
+.abstractType {
+  fill: var(--entity-abstract-fill);
+  stroke: var(--entity-abstract-stroke);
+}
+
+.moduleType {
+  fill: var(--entity-module-fill);
+  stroke: var(--entity-module-stroke);
+}
+
+.typeType {
+  fill: var(--entity-type-fill);
+  stroke: var(--entity-type-stroke);
+}
+
+.stereotype {
+  font-family: var(--font-mono);
+  font-size: var(--font-stereotype);
+  fill: var(--diagram-stereotype);
+  text-anchor: middle;
+}
+
+.header {
+  font-family: var(--font-sans);
+  font-size: var(--font-entity-header);
+  font-weight: 600;
+  fill: var(--diagram-header);
+  text-anchor: middle;
+}
+
+.italic {
+  font-style: italic;
+}

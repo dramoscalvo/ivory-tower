@@ -1,0 +1,25 @@
+.footer {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--toolbar-gap);
+  padding: var(--toolbar-padding-y) var(--toolbar-padding-x);
+  background: var(--bg-toolbar);
+  border-top: 1px solid var(--border-primary);
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: color var(--transition-fast);
+}
+
+.icon:hover {
+  color: var(--text-primary);
+}

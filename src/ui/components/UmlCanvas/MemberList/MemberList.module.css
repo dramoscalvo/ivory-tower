@@ -1,0 +1,10 @@
+.separator {
+  stroke: var(--diagram-separator);
+  stroke-width: 1;
+}
+
+.member {
+  font-family: var(--font-mono);
+  font-size: var(--font-member);
+  fill: var(--diagram-member);
+}

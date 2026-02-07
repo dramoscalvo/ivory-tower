@@ -1,0 +1,51 @@
+.container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  cursor: grab;
+}
+
+.panning {
+  cursor: grabbing;
+}
+
+.svg {
+  display: block;
+}
+
+.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-muted);
+  font-size: var(--font-empty-message);
+}
+
+.controls {
+  position: absolute;
+  bottom: var(--controls-position);
+  right: var(--controls-position);
+  display: flex;
+  gap: var(--controls-gap);
+}
+
+.controlButton {
+  width: var(--size-control);
+  height: var(--size-control);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--control-bg);
+  border: 1px solid var(--control-border);
+  border-radius: 4px;
+  color: var(--control-text);
+  font-size: var(--font-control);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.controlButton:hover {
+  background: var(--control-hover);
+}

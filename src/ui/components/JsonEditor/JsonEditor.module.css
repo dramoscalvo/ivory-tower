@@ -1,0 +1,78 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.editorHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--editor-header-padding-y) var(--editor-header-padding-x);
+  background: var(--bg-toolbar);
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.fontControls {
+  display: flex;
+  gap: var(--space-xs);
+}
+
+.fontButton {
+  padding: var(--button-small-padding-y) var(--button-small-padding-x);
+  font-family: var(--font-sans);
+  font-size: var(--font-button);
+  background: var(--bg-button);
+  color: var(--text-primary);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.fontButton:hover:not(:disabled) {
+  background: var(--bg-button-hover);
+}
+
+.fontButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.prettifyButton {
+  padding: var(--button-small-padding-y) var(--button-small-padding-x);
+  font-family: var(--font-mono);
+  font-size: var(--font-button);
+  background: var(--bg-button);
+  color: var(--text-code);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.prettifyButton:hover {
+  background: var(--bg-button-hover);
+}
+
+.textarea {
+  flex: 1;
+  resize: none;
+  padding: var(--editor-textarea-padding);
+  font-family: var(--font-mono);
+  font-size: var(--font-textarea);
+  line-height: 1.5;
+  background: var(--bg-input);
+  color: var(--text-code);
+  border: none;
+  outline: none;
+}
+
+.textarea::placeholder {
+  color: var(--text-muted);
+}
+
+.textarea.hasErrors {
+  border-left: 3px solid var(--border-error);
+}

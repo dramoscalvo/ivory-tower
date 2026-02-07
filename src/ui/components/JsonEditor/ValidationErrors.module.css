@@ -1,0 +1,28 @@
+.container {
+  flex-shrink: 0;
+  max-height: var(--size-scrollable-max);
+  overflow-y: auto;
+  padding: var(--validation-padding-y) var(--validation-padding-x);
+  background: var(--bg-error);
+  border-top: 1px solid var(--border-error);
+}
+
+.error {
+  font-size: var(--font-validation);
+  color: var(--text-error);
+  margin-bottom: var(--validation-error-gap);
+}
+
+.error:last-child {
+  margin-bottom: 0;
+}
+
+.label {
+  font-weight: 600;
+  color: var(--text-error-label);
+}
+
+.path {
+  font-family: var(--font-mono);
+  color: var(--text-path);
+}

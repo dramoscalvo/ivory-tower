@@ -1,0 +1,50 @@
+.layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--bg-app);
+  color: var(--text-primary);
+}
+
+.toolbar {
+  flex-shrink: 0;
+  padding: var(--toolbar-padding-y) var(--toolbar-padding-x);
+  background: var(--bg-toolbar);
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 4px 1fr;
+  min-height: 0;
+}
+
+.editor {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.divider {
+  background: var(--border-primary);
+  cursor: col-resize;
+  transition: background var(--transition-fast);
+}
+
+.divider:hover,
+.dividerActive {
+  background: var(--bg-button-hover);
+}
+
+.rightPane {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.canvas {
+  overflow: auto;
+  background: var(--bg-canvas);
+  height: 100%;
+}

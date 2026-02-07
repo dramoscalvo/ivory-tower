@@ -1,0 +1,24 @@
+.relationship {
+  pointer-events: none;
+}
+
+.line {
+  fill: none;
+  stroke: var(--diagram-line);
+  stroke-width: 2;
+}
+
+.solid {
+  stroke-dasharray: none;
+}
+
+.dashed {
+  stroke-dasharray: 8 4;
+}
+
+.label {
+  font-family: var(--font-sans);
+  font-size: var(--font-label);
+  fill: var(--diagram-line);
+  text-anchor: middle;
+}

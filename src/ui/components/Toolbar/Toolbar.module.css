@@ -1,0 +1,54 @@
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: var(--font-title);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.logo {
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+.actions {
+  display: flex;
+  gap: var(--toolbar-gap);
+}
+
+.button {
+  padding: var(--button-padding-y) var(--button-padding-x);
+  background: var(--btn-secondary-bg);
+  border: 1px solid var(--btn-secondary-border);
+  border-radius: 4px;
+  color: var(--text-primary);
+  font-size: var(--font-md);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.button:hover:not(:disabled) {
+  background: var(--btn-secondary-hover);
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.primary {
+  background: var(--btn-primary-bg);
+  border-color: var(--btn-primary-border);
+}
+
+.primary:hover:not(:disabled) {
+  background: var(--btn-primary-hover);
+}
