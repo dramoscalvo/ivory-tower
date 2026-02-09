@@ -40,6 +40,12 @@
   cursor: not-allowed;
 }
 
+.headerActions {
+  display: flex;
+  gap: var(--space-xs);
+  align-items: center;
+}
+
 .prettifyButton {
   padding: var(--button-small-padding-y) var(--button-small-padding-x);
   font-family: var(--font-mono);
@@ -56,23 +62,3 @@
   background: var(--bg-button-hover);
 }
 
-.textarea {
-  flex: 1;
-  resize: none;
-  padding: var(--editor-textarea-padding);
-  font-family: var(--font-mono);
-  font-size: var(--font-textarea);
-  line-height: 1.5;
-  background: var(--bg-input);
-  color: var(--text-code);
-  border: none;
-  outline: none;
-}
-
-.textarea::placeholder {
-  color: var(--text-muted);
-}
-
-.textarea.hasErrors {
-  border-left: 3px solid var(--border-error);
-}

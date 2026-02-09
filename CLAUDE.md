@@ -5,6 +5,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Project Overview
 
 React 19 + TypeScript + Vite frontend application with the React Compiler enabled for automatic component optimization.
+Import exact version Always
+When selecting external packages, select the one with less dependencies (preferibly none), smaller size, recent updates and max weekly downloads.
+Prefer packages that excel doing just one think than those which do plenty in a bad way.
 
 ## Development Commands
 
@@ -43,7 +46,7 @@ ESLint flat config (`eslint.config.js`) with:
 - Each component: `ComponentName/ComponentName.tsx` + `ComponentName.module.css`
 - Sub-components in nested directories (e.g., `UmlCanvas/EntityBox/`)
 - Custom hooks alongside components (e.g., `Toolbar/useExport.ts`)
-- Barrel exports in `index.ts` files
+- Do not use Barrel exports
 
 ### Component Structure
 ```typescript
@@ -187,7 +190,12 @@ const close = () => dialogRef.current?.close();
 - Guard clauses for early returns
 - Validation errors displayed in dedicated components
 
+### Tests
+- Prioritize a good base of unitary Tests
+- Test always the functionality, not the implementation
+- Prioritize mocking to any other methods
+- Use always object mother pattern
+
 ## Notes
 
 - React Compiler is enabled via Babel plugin - components are automatically optimized
-- No test framework configured yet

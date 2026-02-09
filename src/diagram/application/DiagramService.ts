@@ -1,6 +1,6 @@
 import { parseJson } from '../infrastructure/JsonParser';
 import { validateDiagram } from '../domain/services/DiagramValidator';
-import { calculateLayout } from '../domain/services/LayoutCalculator';
+import { calculateHierarchicalLayout } from '../domain/services/HierarchicalLayoutCalculator';
 import type { DiagramResult } from './types';
 import type { UMLDiagram } from '../domain/models/UMLDiagram';
 
@@ -18,7 +18,7 @@ export class DiagramService {
       return { success: false, validationErrors };
     }
 
-    const layout = calculateLayout(parseResult.diagram);
+    const layout = calculateHierarchicalLayout(parseResult.diagram);
 
     return { success: true, layout };
   }

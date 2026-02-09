@@ -19,6 +19,7 @@
         "node": "^24.13.0"
     },
     "dependencies": {
+        "prism-react-editor": "^3.0.1",
         "react": "19.2.4",
         "react-dom": "19.2.4"
     },

@@ -1,53 +1,14 @@
 import type { Entity } from '../models/Entity';
-import type { Relationship } from '../models/Relationship';
-import type { UMLDiagram } from '../models/UMLDiagram';
+import type { ConnectionPoint, EntityLayout, Size } from './LayoutCalculator';
 
-export interface Position {
-  x: number;
-  y: number;
-}
+export const ENTITY_PADDING = 16;
+export const ENTITY_HEADER_HEIGHT = 32;
+export const MEMBER_HEIGHT = 24;
+export const CHAR_WIDTH = 8;
+export const MIN_ENTITY_WIDTH = 120;
+export const ENTITY_MARGIN = 60;
 
-export interface Size {
-  width: number;
-  height: number;
-}
-
-export interface EntityLayout {
-  entity: Entity;
-  position: Position;
-  size: Size;
-}
-
-export interface ConnectionPoint {
-  x: number;
-  y: number;
-  side: 'top' | 'bottom' | 'left' | 'right';
-}
-
-export interface RelationshipLayout {
-  relationship: Relationship;
-  source: ConnectionPoint;
-  target: ConnectionPoint;
-}
-
-export interface DiagramLayout {
-  diagram: UMLDiagram;
-  entities: EntityLayout[];
-  relationships: RelationshipLayout[];
-  bounds: { width: number; height: number };
-  titlePosition?: Position;
-}
-
-const ENTITY_PADDING = 16;
-const ENTITY_HEADER_HEIGHT = 32;
-const MEMBER_HEIGHT = 24;
-const CHAR_WIDTH = 8;
-const MIN_ENTITY_WIDTH = 120;
-const ENTITY_MARGIN = 60;
-const GRID_COLUMNS = 3;
-const TITLE_HEIGHT = 40;
-
-function calculateEntitySize(entity: Entity): Size {
+export function calculateEntitySize(entity: Entity): Size {
   const members = [
     ...(entity.attributes ?? []),
     ...(entity.methods ?? []),
@@ -85,7 +46,7 @@ function calculateEntitySize(entity: Entity): Size {
   return { width, height };
 }
 
-function findConnectionPoints(
+export function findConnectionPoints(
   sourceLayout: EntityLayout,
   targetLayout: EntityLayout
 ): { source: ConnectionPoint; target: ConnectionPoint } {
@@ -139,64 +100,5 @@ function findConnectionPoints(
   return {
     source: getPoint(sourceLayout, sourceSide),
     target: getPoint(targetLayout, targetSide),
-  };
-}
-
-export function calculateLayout(diagram: UMLDiagram): DiagramLayout {
-  const entityLayouts: EntityLayout[] = [];
-  const entityLayoutMap = new Map<string, EntityLayout>();
-
-  let currentX = ENTITY_MARGIN;
-  let currentY = ENTITY_MARGIN + TITLE_HEIGHT;
-  let rowMaxHeight = 0;
-  let columnCount = 0;
-  let maxX = 0;
-
-  for (const entity of diagram.entities) {
-    const size = calculateEntitySize(entity);
-
-    if (columnCount >= GRID_COLUMNS) {
-      currentX = ENTITY_MARGIN;
-      currentY += rowMaxHeight + ENTITY_MARGIN;
-      rowMaxHeight = 0;
-      columnCount = 0;
-    }
-
-    const layout: EntityLayout = {
-      entity,
-      position: { x: currentX, y: currentY },
-      size,
-    };
-
-    entityLayouts.push(layout);
-    entityLayoutMap.set(entity.id, layout);
-
-    currentX += size.width + ENTITY_MARGIN;
-    maxX = Math.max(maxX, currentX);
-    rowMaxHeight = Math.max(rowMaxHeight, size.height);
-    columnCount++;
-  }
-
-  const relationshipLayouts: RelationshipLayout[] = [];
-
-  for (const relationship of diagram.relationships) {
-    const sourceLayout = entityLayoutMap.get(relationship.sourceId);
-    const targetLayout = entityLayoutMap.get(relationship.targetId);
-
-    if (sourceLayout && targetLayout) {
-      const { source, target } = findConnectionPoints(sourceLayout, targetLayout);
-      relationshipLayouts.push({ relationship, source, target });
-    }
-  }
-
-  const maxY = currentY + rowMaxHeight + ENTITY_MARGIN;
-  const boundsWidth = Math.max(maxX, MIN_ENTITY_WIDTH + ENTITY_MARGIN * 2);
-
-  return {
-    diagram,
-    entities: entityLayouts,
-    relationships: relationshipLayouts,
-    bounds: { width: boundsWidth, height: maxY },
-    titlePosition: { x: boundsWidth / 2, y: ENTITY_MARGIN + TITLE_HEIGHT / 2 },
   };
 }

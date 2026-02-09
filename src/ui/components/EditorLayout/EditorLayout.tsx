@@ -21,9 +21,18 @@ interface EditorLayoutProps {
 
 const MIN_PANEL_WIDTH = 15; // percentage
 const MAX_PANEL_WIDTH = 85; // percentage
+const EDITOR_WIDTH_KEY = 'editor-width';
+
+function loadEditorWidth(): number {
+  const stored = localStorage.getItem(EDITOR_WIDTH_KEY);
+  if (stored === null) return 50;
+  const value = parseFloat(stored);
+  if (isNaN(value) || value < MIN_PANEL_WIDTH || value > MAX_PANEL_WIDTH) return 50;
+  return value;
+}
 
 export function EditorLayout({ toolbar, architectureEditor, useCasesEditor, canvas, useCasePanel, activeTab, onTabChange }: EditorLayoutProps) {
-  const [editorWidth, setEditorWidth] = useState(50);
+  const [editorWidth, setEditorWidth] = useState(loadEditorWidth);
   const [isResizing, setIsResizing] = useState(false);
   const mainRef = useRef<HTMLElement>(null);
 
@@ -47,6 +56,14 @@ export function EditorLayout({ toolbar, architectureEditor, useCasesEditor, canv
   const handleResizeEnd = useCallback(() => {
     setIsResizing(false);
   }, []);
+
+  const prevIsResizing = useRef(false);
+  useEffect(() => {
+    if (prevIsResizing.current && !isResizing) {
+      localStorage.setItem(EDITOR_WIDTH_KEY, String(editorWidth));
+    }
+    prevIsResizing.current = isResizing;
+  }, [isResizing, editorWidth]);
 
   useEffect(() => {
     if (isResizing) {

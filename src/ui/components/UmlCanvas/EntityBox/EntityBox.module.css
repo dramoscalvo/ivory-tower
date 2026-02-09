@@ -54,3 +54,7 @@
 .italic {
   font-style: italic;
 }
+
+.clickable {
+  cursor: pointer;
+}

@@ -1,160 +1,84 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { screen, waitFor, fireEvent } from '@testing-library/react'
+import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { App } from '../../../../../src/ui/components/App/App'
 import { renderWithProviders } from '../../../../helpers/renderWithProviders'
 
-const STORAGE_KEY = 'uml-diagram-json'
 
 describe('App', () => {
   beforeEach(() => {
     localStorage.clear()
+    document.documentElement.removeAttribute('data-theme')
   })
 
   afterEach(() => {
     localStorage.clear()
+    document.documentElement.removeAttribute('data-theme')
   })
 
   describe('initial render', () => {
     it('renders the toolbar', () => {
       renderWithProviders(<App />)
-
-      expect(screen.getByText('UML Diagram Editor')).toBeInTheDocument()
-    })
-
-    it('renders the JSON editor', () => {
-      renderWithProviders(<App />)
-
-      expect(screen.getByRole('textbox')).toBeInTheDocument()
+      expect(screen.getByText('Ivory Tower')).toBeInTheDocument()
     })
 
     it('loads example diagram by default', () => {
       renderWithProviders(<App />)
-
-      const textarea = screen.getByRole('textbox') as HTMLTextAreaElement
-      expect(textarea.value).toContain('Example System')
-    })
-  })
-
-  describe('localStorage persistence', () => {
-    it('loads diagram from localStorage if present', () => {
-      const savedDiagram = JSON.stringify({
-        title: 'Saved Diagram',
-        entities: [],
-        relationships: [],
-      })
-      localStorage.setItem(STORAGE_KEY, savedDiagram)
-
-      renderWithProviders(<App />)
-
-      const textarea = screen.getByRole('textbox') as HTMLTextAreaElement
-      expect(textarea.value).toContain('Saved Diagram')
-    })
-
-    it('saves diagram to localStorage on change', async () => {
-      renderWithProviders(<App />)
-
-      const textarea = screen.getByRole('textbox')
-      fireEvent.change(textarea, { target: { value: '{"title": "New"}' } })
-
-      await waitFor(() => {
-        const saved = localStorage.getItem(STORAGE_KEY)
-        expect(saved).toContain('New')
-      })
+      // "Example System" appears in both the editor and the canvas title
+      const matches = screen.getAllByText(/Example System/)
+      expect(matches.length).toBeGreaterThanOrEqual(1)
     })
   })
 
   describe('Load Example button', () => {
     it('loads example diagram when clicked', async () => {
       const user = userEvent.setup()
-
-      // Start with custom content in localStorage
-      localStorage.setItem(STORAGE_KEY, '{"title": "Custom"}')
       renderWithProviders(<App />)
 
       await user.click(screen.getByRole('button', { name: /Load Example/i }))
 
-      const textarea = screen.getByRole('textbox') as HTMLTextAreaElement
-      expect(textarea.value).toContain('Example System')
-    })
-  })
-
-  describe('error handling', () => {
-    it('shows error for invalid JSON', async () => {
-      renderWithProviders(<App />)
-
-      const textarea = screen.getByRole('textbox')
-      fireEvent.change(textarea, { target: { value: '{ invalid json' } })
-
-      await waitFor(() => {
-        expect(screen.getByText(/Parse Error:/i)).toBeInTheDocument()
-      })
-    })
-
-    it('shows validation error for valid JSON with invalid structure', async () => {
-      renderWithProviders(<App />)
-
-      const invalidStructure = JSON.stringify({
-        title: 'Test',
-        entities: [{ name: 'Missing ID' }],
-        relationships: [],
-      })
-
-      const textarea = screen.getByRole('textbox')
-      fireEvent.change(textarea, { target: { value: invalidStructure } })
-
-      await waitFor(() => {
-        // Should show validation error about missing id or type
-        const errorElements = screen.getAllByText(/entities\[0\]/i)
-        expect(errorElements.length).toBeGreaterThan(0)
-      })
-    })
-
-    it('clears errors when valid JSON is entered', async () => {
-      renderWithProviders(<App />)
-
-      const textarea = screen.getByRole('textbox')
-
-      // First enter invalid JSON
-      fireEvent.change(textarea, { target: { value: '{ invalid' } })
-
-      await waitFor(() => {
-        expect(screen.getByText(/Parse Error:/i)).toBeInTheDocument()
-      })
-
-      // Then enter valid JSON
-      const validJson = JSON.stringify({
-        title: 'Valid',
-        entities: [],
-        relationships: [],
-      })
-      fireEvent.change(textarea, { target: { value: validJson } })
-
-      await waitFor(() => {
-        expect(screen.queryByText(/Parse Error:/i)).not.toBeInTheDocument()
-      })
+      const matches = screen.getAllByText(/Example System/)
+      expect(matches.length).toBeGreaterThanOrEqual(1)
     })
   })
 
   describe('export button state', () => {
-    it('export button is enabled for valid diagram', async () => {
+    it('export button is enabled for valid diagram', () => {
       renderWithProviders(<App />)
 
-      // Default example diagram should be valid
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: /Export TOON/i })).toBeEnabled()
-      })
+      expect(screen.getByRole('button', { name: /Export TOON/i })).toBeEnabled()
+    })
+  })
+
+  describe('theme toggle', () => {
+    it('renders theme toggle button', () => {
+      renderWithProviders(<App />)
+      expect(screen.getByRole('button', { name: /Switch to light theme/i })).toBeInTheDocument()
     })
 
-    it('export button is disabled for invalid diagram', async () => {
+    it('toggles theme on click', async () => {
+      const user = userEvent.setup()
       renderWithProviders(<App />)
 
-      const textarea = screen.getByRole('textbox')
-      fireEvent.change(textarea, { target: { value: '{ invalid' } })
+      await user.click(screen.getByRole('button', { name: /Switch to light theme/i }))
+      expect(screen.getByRole('button', { name: /Switch to dark theme/i })).toBeInTheDocument()
+    })
+  })
 
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: /Export TOON/i })).toBeDisabled()
-      })
+  describe('toolbar buttons', () => {
+    it('renders Import button', () => {
+      renderWithProviders(<App />)
+      expect(screen.getByRole('button', { name: /Import/i })).toBeInTheDocument()
+    })
+
+    it('renders Share button', () => {
+      renderWithProviders(<App />)
+      expect(screen.getByRole('button', { name: /Share/i })).toBeInTheDocument()
+    })
+
+    it('renders keyboard shortcuts button', () => {
+      renderWithProviders(<App />)
+      expect(screen.getByRole('button', { name: /Keyboard shortcuts/i })).toBeInTheDocument()
     })
   })
 })

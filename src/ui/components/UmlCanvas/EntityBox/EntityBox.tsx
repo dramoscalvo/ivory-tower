@@ -4,6 +4,7 @@ import styles from './EntityBox.module.css';
 
 interface EntityBoxProps {
   layout: EntityLayout;
+  onClick?: (entityId: string) => void;
 }
 
 const HEADER_HEIGHT = 32;
@@ -23,7 +24,7 @@ function getTypeLabel(type: string): string {
   }
 }
 
-export function EntityBox({ layout }: EntityBoxProps) {
+export function EntityBox({ layout, onClick }: EntityBoxProps) {
   const { entity, position, size } = layout;
   const typeLabel = getTypeLabel(entity.type);
   const genericsText = entity.generics?.length ? `<${entity.generics.join(', ')}>` : '';
@@ -38,8 +39,19 @@ export function EntityBox({ layout }: EntityBoxProps) {
 
   const boxStyle = typeStyles[entity.type] || styles.classType;
 
+  const handleClick = (e: React.MouseEvent) => {
+    if (onClick) {
+      e.stopPropagation();
+      onClick(entity.id);
+    }
+  };
+
   return (
-    <g transform={`translate(${position.x}, ${position.y})`} className={styles.box}>
+    <g
+      transform={`translate(${position.x}, ${position.y})`}
+      className={`${styles.box} ${onClick ? styles.clickable : ''}`}
+      onClick={handleClick}
+    >
       <rect
         className={`${styles.background} ${boxStyle}`}
         width={size.width}

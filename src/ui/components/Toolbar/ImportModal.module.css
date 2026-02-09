@@ -1,0 +1,112 @@
+.dialog {
+  padding: 0;
+  border: 1px solid var(--border-primary);
+  border-radius: 8px;
+  background: var(--bg-toolbar);
+  color: var(--text-primary);
+  max-width: 550px;
+  width: 90vw;
+}
+
+.dialog::backdrop {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-lg);
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--font-lg2);
+  font-weight: 600;
+}
+
+.closeButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-xs);
+  border: none;
+  background: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  border-radius: 4px;
+  transition: color var(--transition-fast), background var(--transition-fast);
+}
+
+.closeButton:hover {
+  color: var(--text-primary);
+  background: var(--bg-button);
+}
+
+.body {
+  padding: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.formatSelector {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.label {
+  font-size: var(--font-md);
+  color: var(--text-secondary);
+}
+
+.select {
+  padding: var(--button-small-padding-y) var(--button-small-padding-x);
+  background: var(--bg-button);
+  color: var(--text-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: 4px;
+  font-size: var(--font-md);
+}
+
+.textarea {
+  width: 100%;
+  resize: vertical;
+  padding: var(--space-md);
+  font-family: var(--font-mono);
+  font-size: var(--font-base);
+  line-height: 1.5;
+  background: var(--bg-input);
+  color: var(--text-code);
+  border: 1px solid var(--border-primary);
+  border-radius: 4px;
+  outline: none;
+}
+
+.textarea:focus {
+  border-color: var(--azure);
+}
+
+.error {
+  font-size: var(--font-base);
+  color: var(--text-error);
+}
+
+.importButton {
+  align-self: flex-end;
+  padding: var(--button-padding-y) var(--button-padding-x);
+  background: var(--btn-primary-bg);
+  border: 1px solid var(--btn-primary-border);
+  border-radius: 4px;
+  color: var(--white);
+  font-size: var(--font-md);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.importButton:hover {
+  background: var(--btn-primary-hover);
+}

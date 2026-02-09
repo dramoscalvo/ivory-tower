@@ -49,3 +49,11 @@
 .controlButton:hover {
   background: var(--control-hover);
 }
+
+.title {
+  font-family: var(--font-sans);
+  font-size: var(--font-xl);
+  font-weight: 700;
+  fill: var(--diagram-header);
+  text-anchor: middle;
+}

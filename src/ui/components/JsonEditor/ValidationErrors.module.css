@@ -26,3 +26,11 @@
   font-family: var(--font-mono);
   color: var(--text-path);
 }
+
+.clickable {
+  cursor: pointer;
+}
+
+.clickable:hover {
+  text-decoration: underline;
+}

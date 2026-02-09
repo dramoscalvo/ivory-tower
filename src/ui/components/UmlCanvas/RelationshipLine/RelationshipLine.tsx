@@ -4,6 +4,7 @@ import styles from './RelationshipLine.module.css';
 
 interface RelationshipLineProps {
   layout: RelationshipLayout;
+  labelPosition?: { x: number; y: number };
 }
 
 function getMarkerEnd(type: RelationshipType): string {
@@ -31,7 +32,7 @@ function getLineStyle(type: RelationshipType): string {
   }
 }
 
-export function RelationshipLine({ layout }: RelationshipLineProps) {
+export function RelationshipLine({ layout, labelPosition }: RelationshipLineProps) {
   const { relationship, source, target } = layout;
   const markerEnd = getMarkerEnd(relationship.type);
   const lineStyle = getLineStyle(relationship.type);
@@ -54,11 +55,14 @@ export function RelationshipLine({ layout }: RelationshipLineProps) {
 
   const path = `M ${source.x} ${source.y} Q ${controlX} ${controlY} ${target.x} ${target.y}`;
 
+  const labelX = labelPosition?.x ?? midX;
+  const labelY = labelPosition?.y ?? midY - 8;
+
   return (
     <g className={styles.relationship}>
       <path d={path} className={`${styles.line} ${lineStyle}`} markerEnd={markerEnd} />
       {relationship.label && (
-        <text x={midX} y={midY - 8} className={styles.label}>
+        <text x={labelX} y={labelY} className={styles.label}>
           {relationship.label}
         </text>
       )}
