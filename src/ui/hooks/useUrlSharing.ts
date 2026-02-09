@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { encodeForUrl } from '../../diagram/infrastructure/urlCodec';
 
 export type ShareStatus = 'idle' | 'copied' | 'error';
@@ -7,7 +7,7 @@ export function useUrlSharing() {
   const [shareStatus, setShareStatus] = useState<ShareStatus>('idle');
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const share = useCallback(async (archJson: string, ucJson: string) => {
+  const share = async (archJson: string, ucJson: string) => {
     try {
       const payload = JSON.stringify({ arch: archJson, uc: ucJson });
       const encoded = await encodeForUrl(payload);
@@ -24,7 +24,7 @@ export function useUrlSharing() {
       if (timerRef.current) clearTimeout(timerRef.current);
       timerRef.current = setTimeout(() => setShareStatus('idle'), 2000);
     }
-  }, []);
+  };
 
   return { share, shareStatus };
 }

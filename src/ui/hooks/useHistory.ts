@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef } from 'react';
 
 interface UseHistoryOptions {
   debounceMs?: number;
@@ -17,21 +17,21 @@ export function useHistory(initialValue: string, options: UseHistoryOptions = {}
   const lastSnapshot = useRef(initialValue);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const updateFlags = useCallback(() => {
+  const updateFlags = () => {
     setCanUndo(past.current.length > 0 || timerRef.current !== null);
     setCanRedo(future.current.length > 0);
-  }, []);
+  };
 
-  const commitSnapshot = useCallback(() => {
+  const commitSnapshot = () => {
     if (lastSnapshot.current !== past.current[past.current.length - 1]) {
       past.current.push(lastSnapshot.current);
       if (past.current.length > maxSize) {
         past.current.shift();
       }
     }
-  }, [maxSize]);
+  };
 
-  const set = useCallback((newValue: string, immediate?: boolean) => {
+  const set = (newValue: string, immediate?: boolean) => {
     if (timerRef.current !== null) {
       clearTimeout(timerRef.current);
       timerRef.current = null;
@@ -54,9 +54,9 @@ export function useHistory(initialValue: string, options: UseHistoryOptions = {}
       }, debounceMs);
       updateFlags();
     }
-  }, [commitSnapshot, debounceMs, updateFlags]);
+  };
 
-  const undo = useCallback(() => {
+  const undo = () => {
     if (timerRef.current !== null) {
       clearTimeout(timerRef.current);
       timerRef.current = null;
@@ -73,9 +73,9 @@ export function useHistory(initialValue: string, options: UseHistoryOptions = {}
     lastSnapshot.current = previous;
     setValue(previous);
     updateFlags();
-  }, [updateFlags]);
+  };
 
-  const redo = useCallback(() => {
+  const redo = () => {
     if (future.current.length === 0) return;
 
     const next = future.current.pop()!;
@@ -86,7 +86,7 @@ export function useHistory(initialValue: string, options: UseHistoryOptions = {}
     lastSnapshot.current = next;
     setValue(next);
     updateFlags();
-  }, [maxSize, updateFlags]);
+  };
 
   return { value, setValue: set, undo, redo, canUndo, canRedo };
 }

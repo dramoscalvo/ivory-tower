@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { EditorLayout } from '../EditorLayout/EditorLayout';
 import { JsonEditor } from '../JsonEditor/JsonEditor';
 import { UmlCanvas } from '../UmlCanvas/UmlCanvas';
@@ -183,91 +183,64 @@ export function App() {
     }
   });
 
-  // Derive parse errors from JSON strings
-  const archParseError = useMemo(() => {
-    try {
-      JSON.parse(architectureJson);
-      return null;
-    } catch (e) {
-      return e instanceof Error ? e.message : 'Invalid JSON';
-    }
-  }, [architectureJson]);
+  // Derive parse errors
+  let archParseError: string | null = null;
+  try {
+    JSON.parse(architectureJson);
+  } catch (e) {
+    archParseError = e instanceof Error ? e.message : 'Invalid JSON';
+  }
 
-  const useCasesParseError = useMemo(() => {
-    try {
-      JSON.parse(useCasesJson);
-      return null;
-    } catch (e) {
-      return e instanceof Error ? e.message : 'Invalid JSON';
-    }
-  }, [useCasesJson]);
+  let useCasesParseError: string | null = null;
+  try {
+    JSON.parse(useCasesJson);
+  } catch (e) {
+    useCasesParseError = e instanceof Error ? e.message : 'Invalid JSON';
+  }
 
   // Merge JSON and process diagram — all derived state
-  const { layout, mergedJson, entities, useCases, archValidationErrors, useCasesValidationErrors } = useMemo(() => {
-    const empty = {
-      layout: null as DiagramLayout | null,
-      mergedJson: null as string | null,
-      entities: [] as DiagramLayout['diagram']['entities'],
-      useCases: [] as NonNullable<DiagramLayout['diagram']['useCases']>,
-      archValidationErrors: [] as ValidationError[],
-      useCasesValidationErrors: [] as ValidationError[],
-    };
+  let layout: DiagramLayout | null = null;
+  let mergedJson: string | null = null;
+  let entities: DiagramLayout['diagram']['entities'] = [];
+  let useCases: NonNullable<DiagramLayout['diagram']['useCases']> = [];
+  let archValidationErrors: ValidationError[] = [];
+  let useCasesValidationErrors: ValidationError[] = [];
 
-    if (archParseError || useCasesParseError) return empty;
-
-    let mergedJsonStr: string;
+  if (!archParseError && !useCasesParseError) {
     try {
       const arch = JSON.parse(architectureJson);
       const uc = JSON.parse(useCasesJson);
-      mergedJsonStr = JSON.stringify({ ...arch, useCases: uc }, null, 2);
+      const mergedJsonStr = JSON.stringify({ ...arch, useCases: uc }, null, 2);
+
+      const result = diagramService.processDiagram(mergedJsonStr);
+      if (result.success) {
+        layout = result.layout;
+        mergedJson = mergedJsonStr;
+        entities = result.layout.diagram.entities;
+        useCases = result.layout.diagram.useCases ?? [];
+      } else {
+        mergedJson = mergedJsonStr;
+        archValidationErrors = (result.validationErrors ?? []).filter(
+          e => !e.path.startsWith('useCases')
+        );
+        useCasesValidationErrors = (result.validationErrors ?? []).filter(
+          e => e.path.startsWith('useCases')
+        );
+      }
     } catch {
-      return empty;
+      // merge failed — leave defaults
     }
+  }
 
-    const result = diagramService.processDiagram(mergedJsonStr);
-    if (result.success) {
-      return {
-        layout: result.layout,
-        mergedJson: mergedJsonStr,
-        entities: result.layout.diagram.entities,
-        useCases: result.layout.diagram.useCases ?? [],
-        archValidationErrors: [],
-        useCasesValidationErrors: [],
-      };
-    }
-
-    const archErrors = (result.validationErrors ?? []).filter(
-      e => !e.path.startsWith('useCases')
-    );
-    const ucErrors = (result.validationErrors ?? []).filter(
-      e => e.path.startsWith('useCases')
-    );
-
-    return {
-      ...empty,
-      mergedJson: mergedJsonStr,
-      archValidationErrors: archErrors,
-      useCasesValidationErrors: ucErrors,
-    };
-  }, [architectureJson, useCasesJson, archParseError, useCasesParseError, diagramService]);
-
-  const handleArchitectureJsonChange = useCallback((newJson: string, immediate?: boolean) => {
+  const handleArchitectureJsonChange = (newJson: string, immediate?: boolean) => {
     archHistory.setValue(newJson, immediate);
     localStorage.setItem(ARCH_STORAGE_KEY, newJson);
-  }, [archHistory]);
+  };
 
-  const handleUseCasesJsonChange = useCallback((newJson: string, immediate?: boolean) => {
+  const handleUseCasesJsonChange = (newJson: string, immediate?: boolean) => {
     ucHistory.setValue(newJson, immediate);
     localStorage.setItem(USECASES_STORAGE_KEY, newJson);
-  }, [ucHistory]);
-
-  const handleArchEditorChange = useCallback((newJson: string) => {
-    handleArchitectureJsonChange(newJson);
-  }, [handleArchitectureJsonChange]);
-
-  const handleUcEditorChange = useCallback((newJson: string) => {
-    handleUseCasesJsonChange(newJson);
-  }, [handleUseCasesJsonChange]);
+  };
 
   const handleFontSizeChange = (newSize: FontSize) => {
     setFontSize(newSize);
@@ -279,128 +252,98 @@ export function App() {
     handleUseCasesJsonChange(EXAMPLE_USECASES_JSON, true);
   };
 
-  // Import handler (from Mermaid/PlantUML)
-  const handleImport = useCallback((json: string) => {
+  const handleImport = (json: string) => {
     handleArchitectureJsonChange(json, true);
-  }, [handleArchitectureJsonChange]);
+  };
 
-  // Entity click → scroll to line in editor
-  const handleEntityClick = useCallback((entityId: string) => {
+  const handleEntityClick = (entityId: string) => {
     const line = findEntityLine(architectureJson, entityId);
     if (line !== null) {
       setActiveTab('architecture');
       setTimeout(() => archEditorRef.current?.scrollToLine(line), 50);
     }
-  }, [architectureJson]);
+  };
 
   // Error line highlighting
-  const archHighlightedLines = useMemo(() => {
-    if (archParseError) {
-      // Try to extract line from parse error
-      const match = archParseError.match(/position\s+(\d+)/i);
-      if (match) {
-        const offset = parseInt(match[1], 10);
-        const lineNum = architectureJson.substring(0, offset).split('\n').length;
-        return [lineNum];
-      }
-      return [1];
+  let archHighlightedLines: number[] | undefined;
+  if (archParseError) {
+    const match = archParseError.match(/position\s+(\d+)/i);
+    if (match) {
+      const offset = parseInt(match[1], 10);
+      archHighlightedLines = [architectureJson.substring(0, offset).split('\n').length];
+    } else {
+      archHighlightedLines = [1];
     }
-    if (archValidationErrors.length > 0) {
-      const pathLineMap = buildPathLineMap(architectureJson);
-      const lines: number[] = [];
-      for (const error of archValidationErrors) {
-        const line = pathLineMap.get(error.path);
-        if (line !== null && line !== undefined) {
-          lines.push(line);
-        }
-      }
-      return lines.length > 0 ? lines : undefined;
+  } else if (archValidationErrors.length > 0) {
+    const pathLineMap = buildPathLineMap(architectureJson);
+    const lines: number[] = [];
+    for (const error of archValidationErrors) {
+      const line = pathLineMap.get(error.path);
+      if (line !== null && line !== undefined) lines.push(line);
     }
-    return undefined;
-  }, [archParseError, archValidationErrors, architectureJson]);
+    if (lines.length > 0) archHighlightedLines = lines;
+  }
 
-  const ucHighlightedLines = useMemo(() => {
-    if (useCasesParseError) {
-      return [1];
+  let ucHighlightedLines: number[] | undefined;
+  if (useCasesParseError) {
+    ucHighlightedLines = [1];
+  } else if (useCasesValidationErrors.length > 0) {
+    const pathLineMap = buildPathLineMap(useCasesJson);
+    const lines: number[] = [];
+    for (const error of useCasesValidationErrors) {
+      const path = error.path.replace(/^useCases\.?/, '');
+      const line = pathLineMap.get(path);
+      if (line !== null && line !== undefined) lines.push(line);
     }
-    if (useCasesValidationErrors.length > 0) {
-      const pathLineMap = buildPathLineMap(useCasesJson);
-      const lines: number[] = [];
-      for (const error of useCasesValidationErrors) {
-        // Strip 'useCases' prefix for the UC editor
-        const path = error.path.replace(/^useCases\.?/, '');
-        const line = pathLineMap.get(path);
-        if (line !== null && line !== undefined) {
-          lines.push(line);
-        }
-      }
-      return lines.length > 0 ? lines : undefined;
-    }
-    return undefined;
-  }, [useCasesParseError, useCasesValidationErrors, useCasesJson]);
+    if (lines.length > 0) ucHighlightedLines = lines;
+  }
 
-  // Error click → scroll to error line
-  const handleArchErrorClick = useCallback((line: number) => {
-    if (line > 0) {
-      archEditorRef.current?.scrollToLine(line);
-    }
-  }, []);
+  const handleArchErrorClick = (line: number) => {
+    if (line > 0) archEditorRef.current?.scrollToLine(line);
+  };
 
-  const handleUcErrorClick = useCallback((line: number) => {
-    if (line > 0) {
-      ucEditorRef.current?.scrollToLine(line);
-    }
-  }, []);
+  const handleUcErrorClick = (line: number) => {
+    if (line > 0) ucEditorRef.current?.scrollToLine(line);
+  };
 
-  // Share handler
-  const handleShare = useCallback(() => {
+  const handleShare = () => {
     share(architectureJson, useCasesJson);
-  }, [share, architectureJson, useCasesJson]);
+  };
 
-  // Undo/redo for active editor
-  const handleUndo = useCallback(() => {
+  const handleUndo = () => {
     if (activeTab === 'architecture') {
       archHistory.undo();
     } else {
       ucHistory.undo();
     }
-  }, [activeTab, archHistory, ucHistory]);
+  };
 
-  const handleRedo = useCallback(() => {
+  const handleRedo = () => {
     if (activeTab === 'architecture') {
       archHistory.redo();
     } else {
       ucHistory.redo();
     }
-  }, [activeTab, archHistory, ucHistory]);
+  };
 
-  const handlePrettify = useCallback(() => {
+  const handlePrettify = () => {
     if (activeTab === 'architecture') {
       archEditorRef.current?.prettify();
     } else {
       ucEditorRef.current?.prettify();
     }
-  }, [activeTab]);
+  };
 
-  const handleExportShortcut = useCallback(() => {
-    if (layout) {
-      const { exportService } = diagramService as unknown as { exportService: never };
-      // The export is handled by the toolbar's useExport hook
-      // We can't easily trigger it from here, so we'll skip this shortcut for now
-      void exportService;
-    }
-  }, [layout, diagramService]);
-
-  const handleFitToView = useCallback(() => {
+  const handleFitToView = () => {
     canvasRef.current?.fitToView();
-  }, []);
+  };
 
   // Keyboard shortcuts
   useKeyboardShortcuts({
     onUndo: handleUndo,
     onRedo: handleRedo,
     onPrettify: handlePrettify,
-    onExport: handleExportShortcut,
+    onExport: () => {},
     onFitToView: handleFitToView,
   });
 
@@ -423,7 +366,7 @@ export function App() {
           <JsonEditor
             ref={archEditorRef}
             value={architectureJson}
-            onChange={handleArchEditorChange}
+            onChange={handleArchitectureJsonChange}
             parseError={archParseError}
             validationErrors={archValidationErrors}
             fontSize={fontSize}
@@ -440,7 +383,7 @@ export function App() {
           <JsonEditor
             ref={ucEditorRef}
             value={useCasesJson}
-            onChange={handleUcEditorChange}
+            onChange={handleUseCasesJsonChange}
             parseError={useCasesParseError}
             validationErrors={useCasesValidationErrors}
             fontSize={fontSize}

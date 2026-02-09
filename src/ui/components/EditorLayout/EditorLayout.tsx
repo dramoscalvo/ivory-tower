@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef, type ReactNode } from 'react';
+import { useState, useEffect, useRef, type ReactNode } from 'react';
 import { Footer } from '../Footer';
 import { TabPanel } from '../TabPanel';
 import type { Tab } from '../TabPanel';
@@ -36,45 +36,39 @@ export function EditorLayout({ toolbar, architectureEditor, useCasesEditor, canv
   const [isResizing, setIsResizing] = useState(false);
   const mainRef = useRef<HTMLElement>(null);
 
-  const handleResizeStart = useCallback((e: React.MouseEvent) => {
+  const handleResizeStart = (e: React.MouseEvent) => {
     e.preventDefault();
     setIsResizing(true);
-  }, []);
+  };
 
-  const handleResizeMove = useCallback(
-    (e: MouseEvent) => {
-      if (!isResizing || !mainRef.current) return;
+  // Document-level listeners for drag resize (genuine side-effect: global event listeners)
+  useEffect(() => {
+    if (!isResizing) return;
 
+    const handleResizeMove = (e: MouseEvent) => {
+      if (!mainRef.current) return;
       const rect = mainRef.current.getBoundingClientRect();
       const newWidth = ((e.clientX - rect.left) / rect.width) * 100;
       const clampedWidth = Math.min(Math.max(newWidth, MIN_PANEL_WIDTH), MAX_PANEL_WIDTH);
       setEditorWidth(clampedWidth);
-    },
-    [isResizing]
-  );
+    };
 
-  const handleResizeEnd = useCallback(() => {
-    setIsResizing(false);
-  }, []);
+    const handleResizeEnd = () => {
+      setIsResizing(false);
+      // Read current width via functional updater to avoid stale closure
+      setEditorWidth(current => {
+        localStorage.setItem(EDITOR_WIDTH_KEY, String(current));
+        return current;
+      });
+    };
 
-  const prevIsResizing = useRef(false);
-  useEffect(() => {
-    if (prevIsResizing.current && !isResizing) {
-      localStorage.setItem(EDITOR_WIDTH_KEY, String(editorWidth));
-    }
-    prevIsResizing.current = isResizing;
-  }, [isResizing, editorWidth]);
-
-  useEffect(() => {
-    if (isResizing) {
-      document.addEventListener('mousemove', handleResizeMove);
-      document.addEventListener('mouseup', handleResizeEnd);
-      return () => {
-        document.removeEventListener('mousemove', handleResizeMove);
-        document.removeEventListener('mouseup', handleResizeEnd);
-      };
-    }
-  }, [isResizing, handleResizeMove, handleResizeEnd]);
+    document.addEventListener('mousemove', handleResizeMove);
+    document.addEventListener('mouseup', handleResizeEnd);
+    return () => {
+      document.removeEventListener('mousemove', handleResizeMove);
+      document.removeEventListener('mouseup', handleResizeEnd);
+    };
+  }, [isResizing]);
 
   return (
     <div className={styles.layout}>

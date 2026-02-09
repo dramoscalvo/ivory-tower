@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo, forwardRef, useImperativeHandle } from 'react';
+import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 import type { DiagramLayout } from '../../../diagram/domain/services/LayoutCalculator';
 import { computeLabelPositions } from '../../../diagram/domain/services/labelPlacement';
 import { SvgDefs } from './SvgDefs';
@@ -28,10 +28,7 @@ export const UmlCanvas = forwardRef<UmlCanvasHandle, UmlCanvasProps>(
     const [isPanning, setIsPanning] = useState(false);
     const [panStart, setPanStart] = useState({ x: 0, y: 0 });
 
-    const labelPositions = useMemo(() => {
-      if (!layout) return new Map();
-      return computeLabelPositions(layout.relationships);
-    }, [layout]);
+    const labelPositions = layout ? computeLabelPositions(layout.relationships) : new Map();
 
     const handleWheel = (e: React.WheelEvent) => {
       if (e.ctrlKey || e.metaKey) {
