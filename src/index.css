@@ -25,7 +25,7 @@
 @font-face {
   font-family: 'Open Sans';
   font-style: normal;
-  font-weight: 400 600;
+  font-weight: 400 700;
   font-stretch: 100%;
   font-display: swap;
   src: url('/fonts/open-sans-latin.woff2') format('woff2');
@@ -37,7 +37,7 @@
 @font-face {
   font-family: 'Open Sans';
   font-style: normal;
-  font-weight: 400 600;
+  font-weight: 400 700;
   font-stretch: 100%;
   font-display: swap;
   src: url('/fonts/open-sans-latin-ext.woff2') format('woff2');
@@ -250,13 +250,13 @@ h6 {
   --space-lg: 1rem; /* 16px */
 
   /* Font sizes */
-  --font-xs: 0.625rem; /* 10px */
-  --font-sm: 0.6875rem; /* 11px */
-  --font-base: 0.75rem; /* 12px */
-  --font-md: 0.8125rem; /* 13px */
-  --font-lg: 0.875rem; /* 14px */
-  --font-lg2: 1rem; /* 16px */
-  --font-xl: 1.125rem; /* 18px */
+  --font-xs: 0.75rem; /* 12px */
+  --font-sm: 0.8125rem; /* 13px */
+  --font-base: 0.875rem; /* 14px */
+  --font-md: 0.9375rem; /* 15px */
+  --font-lg: 1rem; /* 16px */
+  --font-lg2: 1.125rem; /* 18px */
+  --font-xl: 1.25rem; /* 20px */
 
   /* Sizes */
   --size-control: 2rem; /* 32px */
@@ -264,6 +264,53 @@ h6 {
 
   /* Transitions */
   --transition-fast: 0.15s;
+  --transition-normal: 0.2s;
+  --transition-slow: 0.3s;
+
+  /* Extended spacing */
+  --space-xl: 1.5rem;
+  --space-2xl: 2rem;
+  --space-3xl: 3rem;
+
+  /* Border radius */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+
+  /* Shadows */
+  --shadow-sm: 0 0.0625rem 0.125rem rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 0.25rem 1rem rgba(0, 0, 0, 0.4);
+
+  /* Font weights */
+  --weight-normal: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  /* Z-index scale */
+  --z-dropdown: 100;
+  --z-overlay: 200;
+  --z-modal: 300;
+
+  /* Opacity */
+  --opacity-disabled: 0.5;
+  --opacity-dimmed: 0.15;
+
+  /* Dialog widths */
+  --dialog-width-sm: 25rem;
+  --dialog-width-md: 30rem;
+  --dialog-width-lg: 35rem;
+
+  /* Backdrop */
+  --backdrop-color: rgba(0, 0, 0, 0.6);
+
+  /* Code editor highlights */
+  --editor-error-bg: rgba(233, 69, 96, 0.15);
+  --editor-flash-bg: rgba(74, 144, 217, 0.3);
+
+  /* Accent */
+  --accent: var(--azure);
 
   /* ============================================
      TIER 2: Semantic Spacing Usage
@@ -302,7 +349,7 @@ h6 {
   --tab-text-active: var(--text-primary);
   --tab-padding-y: var(--space-sm);
   --tab-padding-x: var(--space-lg);
-  --tab-gap: var(--space-xs);
+  --tab-gap: var(--space-sm);
 
   /* Gherkin keywords */
   --gherkin-given: var(--azure);
@@ -402,7 +449,18 @@ h6 {
   --usecase-card-bg: #ffffff;
   --usecase-card-border: #d0d0d0;
   --usecase-scenario-bg: #f5f5f5;
+
+  /* Shadows (softer for light theme) */
+  --shadow-sm: 0 0.0625rem 0.125rem rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 0.25rem 1rem rgba(0, 0, 0, 0.12);
+  --backdrop-color: rgba(0, 0, 0, 0.4);
+  --editor-error-bg: rgba(233, 69, 96, 0.1);
+  --editor-flash-bg: rgba(74, 144, 217, 0.2);
 }
+
+[data-theme='light'] { scrollbar-color: #c0c0c0 transparent; }
+[data-theme='light'] ::-webkit-scrollbar-thumb { background: #c0c0c0; }
 
 html,
 body,
@@ -412,3 +470,26 @@ body,
   height: 100%;
   overflow: hidden;
 }
+
+/* Focus styles */
+:focus-visible {
+  outline: 0.125rem solid var(--azure);
+  outline-offset: 0.125rem;
+}
+
+/* Custom scrollbar */
+* {
+  scrollbar-color: var(--graphite) transparent;
+  scrollbar-width: thin;
+}
+::-webkit-scrollbar { width: 0.5rem; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--graphite); border-radius: var(--radius-sm); }
+
+/* Modal transitions */
+dialog[open] { animation: dialogFadeIn var(--transition-normal) ease; }
+dialog::backdrop { animation: dialogFadeIn var(--transition-normal) ease; }
+@keyframes dialogFadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* Selection */
+::selection { background: var(--azure); color: var(--white); }

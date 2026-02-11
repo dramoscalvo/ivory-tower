@@ -1,28 +1,29 @@
 .dialog {
   padding: 0;
-  border: 1px solid var(--silver);
+  border: 0.0625rem solid var(--border-primary);
   border-radius: var(--radius-md);
-  background: var(--bg-canvas);
-  color: var(--midnight);
-  max-width: 400px;
+  background: var(--bg-toolbar);
+  color: var(--text-primary);
+  max-width: var(--dialog-width-md);
   width: 90vw;
+  box-shadow: var(--shadow-lg);
 }
 
 .dialog::backdrop {
-  background: rgba(0, 0, 0, 0.6);
+  background: var(--backdrop-color);
 }
 
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--spacing-md);
-  border-bottom: 1px solid var(--silver);
+  padding: var(--space-lg);
+  border-bottom: 0.0625rem solid var(--border-primary);
 }
 
 .title {
   margin: 0;
-  font-size: var(--font-size-lg);
+  font-size: var(--font-lg2);
   font-weight: 600;
 }
 
@@ -30,10 +31,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: var(--spacing-xs);
+  padding: var(--space-xs);
   border: none;
   background: none;
-  color: var(--gray);
+  color: var(--text-secondary);
   cursor: pointer;
   border-radius: var(--radius-sm);
   transition:
@@ -41,20 +42,37 @@
     background var(--transition-fast);
 }
 
+.closeButton svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
 .closeButton:hover {
-  color: var(--midnight);
-  background: var(--smoke);
+  color: var(--text-primary);
+  background: var(--bg-button);
 }
 
 .body {
-  padding: var(--spacing-md);
+  padding: var(--space-lg);
 }
 
 .body p {
-  margin: 0 0 var(--spacing-sm);
+  margin: 0 0 var(--space-sm);
   line-height: 1.6;
 }
 
 .body p:last-child {
   margin-bottom: 0;
+}
+
+.credit {
+  font-style: italic;
+  color: var(--text-secondary);
+}
+
+.meta {
+  font-size: var(--font-xs);
+  color: var(--text-secondary);
+  text-align: center;
+  margin-top: var(--space-md);
 }

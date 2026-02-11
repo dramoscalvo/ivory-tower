@@ -65,6 +65,6 @@
 }
 
 .dimmed {
-  opacity: 0.25;
-  transition: opacity 0.2s ease;
+  opacity: var(--opacity-dimmed);
+  transition: opacity var(--transition-normal) ease;
 }

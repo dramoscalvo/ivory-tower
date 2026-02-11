@@ -1,0 +1,63 @@
+{
+  "name": "ivory-tower",
+  "displayName": "Ivory Tower",
+  "description": "Visual UML diagram editor with use case support",
+  "version": "0.1.0",
+  "publisher": "ivory-tower",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Visualization",
+    "Programming Languages",
+    "Other"
+  ],
+  "keywords": [
+    "uml",
+    "diagram",
+    "architecture",
+    "visualization"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "customEditors": [
+      {
+        "viewType": "ivory-tower.editor",
+        "displayName": "Ivory Tower Architecture Editor",
+        "selector": [
+          {
+            "filenamePattern": "*.architecture.json"
+          }
+        ],
+        "priority": "default"
+      }
+    ],
+    "commands": [
+      {
+        "command": "ivory-tower.openEditor",
+        "title": "Open in Ivory Tower",
+        "category": "Ivory Tower"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "ivory-tower.openEditor",
+          "when": "resourceExtname == .json",
+          "group": "navigation"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "@types/node": "20.x",
+    "typescript": "^5.3.0"
+  }
+}

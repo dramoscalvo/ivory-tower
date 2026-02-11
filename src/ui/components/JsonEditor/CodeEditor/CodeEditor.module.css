@@ -6,7 +6,7 @@
 
 /* Error line highlight */
 .errorLine {
-  background: rgba(233, 69, 96, 0.15);
+  background: var(--editor-error-bg);
   border-left: 3px solid var(--crimson);
 }
 
@@ -17,7 +17,7 @@
 
 @keyframes flash {
   0% {
-    background: rgba(74, 144, 217, 0.3);
+    background: var(--editor-flash-bg);
   }
   100% {
     background: transparent;

@@ -14,8 +14,6 @@ const defaultProps = {
   json: '',
   hasValidDiagram: false,
   onLoadExample: () => {},
-  theme: 'dark' as const,
-  onToggleTheme: () => {},
   onShare: () => {},
   shareStatus: 'idle' as const,
   onImport: () => {},
@@ -93,28 +91,6 @@ describe('Toolbar', () => {
     });
   });
 
-  describe('theme toggle', () => {
-    it('renders theme toggle button', () => {
-      renderWithProviders(<Toolbar {...defaultProps} />);
-      expect(screen.getByRole('button', { name: /Switch to light theme/i })).toBeInTheDocument();
-    });
-
-    it('calls onToggleTheme when clicked', async () => {
-      const user = userEvent.setup();
-      const onToggleTheme = vi.fn();
-
-      renderWithProviders(<Toolbar {...defaultProps} onToggleTheme={onToggleTheme} />);
-
-      await user.click(screen.getByRole('button', { name: /Switch to light theme/i }));
-      expect(onToggleTheme).toHaveBeenCalledTimes(1);
-    });
-
-    it('shows correct label for light theme', () => {
-      renderWithProviders(<Toolbar {...defaultProps} theme="light" />);
-      expect(screen.getByRole('button', { name: /Switch to dark theme/i })).toBeInTheDocument();
-    });
-  });
-
   describe('Import button', () => {
     it('renders Import button', () => {
       renderWithProviders(<Toolbar {...defaultProps} />);
@@ -155,20 +131,6 @@ describe('Toolbar', () => {
         <Toolbar {...defaultProps} hasValidDiagram={true} json={VALID_JSON} shareStatus="copied" />,
       );
       expect(screen.getByText('Copied!')).toBeInTheDocument();
-    });
-  });
-
-  describe('keyboard shortcuts button', () => {
-    it('renders keyboard shortcuts button', () => {
-      renderWithProviders(<Toolbar {...defaultProps} />);
-      expect(screen.getByRole('button', { name: /Keyboard shortcuts/i })).toBeInTheDocument();
-    });
-  });
-
-  describe('learning resources button', () => {
-    it('renders learning resources button', () => {
-      renderWithProviders(<Toolbar {...defaultProps} />);
-      expect(screen.getByRole('button', { name: /Learning resources/i })).toBeInTheDocument();
     });
   });
 

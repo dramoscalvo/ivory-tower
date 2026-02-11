@@ -17,7 +17,10 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "docker:build": "docker build -t ivory-tower .",
-    "docker:run": "docker run --rm -p 8080:80 ivory-tower"
+    "docker:run": "docker run --rm -p 8080:80 ivory-tower",
+    "ext:copy": "rm -rf vscode-extension/dist && cp -r dist vscode-extension/",
+    "ext:build": "pnpm build && pnpm ext:copy && cd vscode-extension && npm run compile",
+    "ext:package": "pnpm ext:build && cd vscode-extension && npx vsce package"
   },
   "engines": {
     "node": "^24.13.0"

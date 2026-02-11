@@ -131,10 +131,45 @@ export const Modal = forwardRef<HTMLDialogElement, ModalProps>(
 
 - All styles use CSS Modules (`.module.css`), accessed as `className={styles.name}`
 - camelCase class names
-- **Always use CSS variables from `src/index.css`** — never hardcode colors
+- **Always use CSS variables from `src/index.css`** — never hardcode colors, spacing, radius, shadows, or opacity values
 - Two-tier variable system: Tier 1 (base colors/spacing) and Tier 2 (semantic usage) — see `src/index.css`
 - Light theme supported via `[data-theme="light"]` overrides in `src/index.css`
-- Prefer `rem`/`em` over `px` for accessibility. Use `px` only for borders/shadows.
+- **Use `rem`/`em` exclusively** — never use `px` (not even for borders/shadows; use `0.0625rem` for 1px)
+
+### Design Tokens
+
+All values must come from CSS variables defined in `src/index.css`. Never hardcode these:
+
+| Category | Tokens | Example |
+|---|---|---|
+| **Spacing** | `--space-xs` (0.25rem) through `--space-3xl` (3rem) | `padding: var(--space-md)` |
+| **Border radius** | `--radius-sm` (0.25rem), `--radius-md` (0.5rem), `--radius-lg` (0.75rem) | `border-radius: var(--radius-sm)` |
+| **Shadows** | `--shadow-sm`, `--shadow-md`, `--shadow-lg` | `box-shadow: var(--shadow-md)` |
+| **Font sizes** | `--font-xs` (0.75rem) through `--font-xl` (1.25rem) | `font-size: var(--font-base)` |
+| **Font weights** | `--weight-normal` (400), `--weight-medium` (500), `--weight-semibold` (600), `--weight-bold` (700) | `font-weight: var(--weight-semibold)` |
+| **Z-index** | `--z-dropdown` (100), `--z-overlay` (200), `--z-modal` (300) | `z-index: var(--z-dropdown)` |
+| **Transitions** | `--transition-fast` (0.15s), `--transition-normal` (0.2s), `--transition-slow` (0.3s) | `transition: opacity var(--transition-normal)` |
+| **Opacity** | `--opacity-disabled` (0.5), `--opacity-dimmed` (0.15) | `opacity: var(--opacity-disabled)` |
+| **Dialog widths** | `--dialog-width-sm` (25rem), `--dialog-width-md` (30rem), `--dialog-width-lg` (35rem) | `max-width: var(--dialog-width-md)` |
+| **Backdrop** | `--backdrop-color` | `background: var(--backdrop-color)` |
+
+### Modal Dialog Pattern
+
+All dialogs must follow this pattern:
+- `border-radius: var(--radius-md)`
+- `max-width: var(--dialog-width-sm|md|lg)`
+- `box-shadow: var(--shadow-lg)`
+- `::backdrop { background: var(--backdrop-color) }`
+- Background: `var(--bg-toolbar)`, text: `var(--text-primary)` (respects theme)
+- Open animation provided globally via `dialog[open]` in `index.css`
+
+### Focus Styles
+
+Global `:focus-visible` outline is defined in `index.css` (azure ring). Do not add per-component focus outlines unless overriding for specific needs. Form inputs should add `box-shadow: 0 0 0 0.0625rem var(--azure)` on `:focus` for a glow effect.
+
+### Light Theme
+
+When adding new CSS variables that use `rgba()` or color values, always add a corresponding override in the `[data-theme='light']` section of `index.css`. Shadow tokens should be softer in light theme.
 
 ## React Rules
 

@@ -24,8 +24,8 @@
 }
 
 .dimmed {
-  opacity: 0.15;
-  transition: opacity 0.2s ease;
+  opacity: var(--opacity-dimmed);
+  transition: opacity var(--transition-normal) ease;
 }
 
 .cardinality {

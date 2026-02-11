@@ -20,7 +20,7 @@
   color: var(--tab-text);
   font-size: var(--font-base);
   cursor: pointer;
-  border-radius: 0.25rem;
+  border-radius: var(--radius-sm);
   transition:
     background var(--transition-fast),
     color var(--transition-fast);
@@ -33,6 +33,7 @@
 .tabActive {
   background: var(--tab-active-bg);
   color: var(--tab-text-active);
+  box-shadow: inset 0 -0.125rem 0 var(--azure);
 }
 
 .tabContent {

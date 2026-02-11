@@ -6,20 +6,36 @@
   gap: var(--toolbar-gap);
   padding: var(--toolbar-padding-y) var(--toolbar-padding-x);
   background: var(--bg-toolbar);
-  border-top: 1px solid var(--border-primary);
+  border-top: 0.0625rem solid var(--border-primary);
 }
 
 .icon {
   display: flex;
   align-items: center;
-  padding: 0;
+  padding: var(--space-xs);
   border: none;
   background: none;
   color: var(--text-secondary);
   cursor: pointer;
-  transition: color var(--transition-fast);
+  border-radius: var(--radius-sm);
+  transition:
+    color var(--transition-fast),
+    background var(--transition-fast);
+}
+
+.icon svg {
+  width: 1.25rem;
+  height: 1.25rem;
 }
 
 .icon:hover {
   color: var(--text-primary);
+  background: var(--bg-button);
+}
+
+.separator {
+  width: 0.0625rem;
+  height: 1.25rem;
+  background: var(--border-primary);
+  align-self: center;
 }

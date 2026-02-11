@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, type ReactNode } from 'react';
 import { Footer } from '../Footer';
 import { TabPanel } from '../TabPanel';
 import type { Tab } from '../TabPanel';
+import type { Theme } from '../../hooks/useTheme';
 import styles from './EditorLayout.module.css';
 
 const TABS: Tab[] = [
@@ -19,6 +20,8 @@ interface EditorLayoutProps {
   coveragePanel: ReactNode;
   activeTab: string;
   onTabChange: (tabId: string) => void;
+  theme: Theme;
+  onToggleTheme: () => void;
 }
 
 const MIN_PANEL_WIDTH = 15; // percentage
@@ -42,6 +45,8 @@ export function EditorLayout({
   coveragePanel,
   activeTab,
   onTabChange,
+  theme,
+  onToggleTheme,
 }: EditorLayoutProps) {
   const [editorWidth, setEditorWidth] = useState(loadEditorWidth);
   const [isResizing, setIsResizing] = useState(false);
@@ -87,7 +92,7 @@ export function EditorLayout({
       <main
         ref={mainRef}
         className={styles.main}
-        style={{ gridTemplateColumns: `${editorWidth}% 4px 1fr` }}
+        style={{ gridTemplateColumns: `${editorWidth}% 0.25rem 1fr` }}
       >
         <section className={styles.editor}>
           {activeTab === 'architecture' ? architectureEditor : useCasesEditor}
@@ -108,7 +113,7 @@ export function EditorLayout({
           </TabPanel>
         </section>
       </main>
-      <Footer />
+      <Footer theme={theme} onToggleTheme={onToggleTheme} />
     </div>
   );
 }

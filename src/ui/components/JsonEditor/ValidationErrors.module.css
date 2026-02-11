@@ -33,4 +33,6 @@
 
 .clickable:hover {
   text-decoration: underline;
+  background: var(--bg-button);
+  border-radius: var(--radius-sm);
 }

@@ -15,10 +15,12 @@ import { downloadFile } from '../../../export/infrastructure/FileDownloader';
 import { findEntityLine } from '../../../diagram/domain/services/jsonLineMapper';
 import { buildPathLineMap } from '../../../diagram/domain/services/errorLineMapper';
 import { validateCompleteness } from '../../../diagram/domain/services/CompletenessValidator';
+import { isVsCode, postMessage } from '../../../vscode/vscodeApi';
 import type { DiagramLayout } from '../../../diagram/domain/services/LayoutCalculator';
 import type { ValidationError } from '../../../diagram/domain/services/DiagramValidator';
 import type { CompletenessWarning } from '../../../diagram/domain/services/CompletenessValidator';
 import type { Actor } from '../../../diagram/domain/models/Actor';
+import type { VsCodeMessage } from '../../../vscode/vscodeApi';
 import type { FontSize, JsonEditorHandle } from '../JsonEditor/JsonEditor';
 import type { UmlCanvasHandle } from '../UmlCanvas/UmlCanvas';
 import styles from './App.module.css';
@@ -162,6 +164,7 @@ function isValidFontSize(value: string | null): value is FontSize {
   return value !== null && FONT_SIZES.includes(value as FontSize);
 }
 
+
 export function App() {
   const { diagramService, exportService } = useServices();
   const { theme, toggleTheme } = useTheme();
@@ -171,14 +174,32 @@ export function App() {
   const ucEditorRef = useRef<JsonEditorHandle>(null);
   const canvasRef = useRef<UmlCanvasHandle>(null);
 
-  // History-backed JSON states
-  const archHistory = useHistory(
-    localStorage.getItem(ARCH_STORAGE_KEY) ?? EXAMPLE_ARCHITECTURE_JSON,
-  );
-  const ucHistory = useHistory(localStorage.getItem(USECASES_STORAGE_KEY) ?? EXAMPLE_USECASES_JSON);
+  // VS Code content state
+  const [vscodeContent, setVscodeContent] = useState<{
+    architecture: string;
+    useCases: string;
+  } | null>(null);
+  const [vscodeReady, setVscodeReady] = useState(!isVsCode);
 
-  const architectureJson = archHistory.value;
-  const useCasesJson = ucHistory.value;
+  // History-backed JSON states (only used in standalone mode)
+  const archHistory = useHistory(
+    isVsCode
+      ? EXAMPLE_ARCHITECTURE_JSON
+      : (localStorage.getItem(ARCH_STORAGE_KEY) ?? EXAMPLE_ARCHITECTURE_JSON),
+  );
+  const ucHistory = useHistory(
+    isVsCode
+      ? EXAMPLE_USECASES_JSON
+      : (localStorage.getItem(USECASES_STORAGE_KEY) ?? EXAMPLE_USECASES_JSON),
+  );
+
+  // Use VS Code content when available, otherwise use local state
+  const architectureJson = isVsCode
+    ? (vscodeContent?.architecture ?? EXAMPLE_ARCHITECTURE_JSON)
+    : archHistory.value;
+  const useCasesJson = isVsCode
+    ? (vscodeContent?.useCases ?? EXAMPLE_USECASES_JSON)
+    : ucHistory.value;
 
   // Font size state
   const [fontSize, setFontSize] = useState<FontSize>(() => {
@@ -187,9 +208,7 @@ export function App() {
   });
 
   // Vim mode state
-  const [vimMode, setVimMode] = useState(() =>
-    localStorage.getItem(VIM_MODE_KEY) === 'true',
-  );
+  const [vimMode, setVimMode] = useState(() => localStorage.getItem(VIM_MODE_KEY) === 'true');
 
   const handleVimModeChange = (enabled: boolean) => {
     setVimMode(enabled);
@@ -228,6 +247,49 @@ export function App() {
       });
     }
   });
+
+  // VS Code integration: listen for messages and send changes
+  useEffect(() => {
+    if (!isVsCode) return;
+
+    // Listen for messages from VS Code extension
+    const handleMessage = (event: MessageEvent<VsCodeMessage>) => {
+      const message = event.data;
+
+      switch (message.type) {
+        case 'fileContent':
+          setVscodeContent(message.content);
+          setVscodeReady(true);
+          break;
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+
+    // Signal that webview is ready
+    postMessage({ type: 'ready' });
+
+    return () => {
+      window.removeEventListener('message', handleMessage);
+    };
+  }, []);
+
+  // Send content changes back to VS Code
+  useEffect(() => {
+    if (!isVsCode || !vscodeReady) return;
+
+    const timeoutId = setTimeout(() => {
+      postMessage({
+        type: 'contentChanged',
+        content: {
+          architecture: architectureJson,
+          useCases: useCasesJson,
+        },
+      });
+    }, 500); // Debounce changes
+
+    return () => clearTimeout(timeoutId);
+  }, [architectureJson, useCasesJson, vscodeReady]);
 
   // Derive parse errors
   let archParseError: string | null = null;
@@ -283,13 +345,27 @@ export function App() {
   }
 
   const handleArchitectureJsonChange = (newJson: string, immediate?: boolean) => {
-    archHistory.setValue(newJson, immediate);
-    localStorage.setItem(ARCH_STORAGE_KEY, newJson);
+    if (isVsCode) {
+      setVscodeContent(prev => ({
+        ...(prev ?? { architecture: '', useCases: '' }),
+        architecture: newJson,
+      }));
+    } else {
+      archHistory.setValue(newJson, immediate);
+      localStorage.setItem(ARCH_STORAGE_KEY, newJson);
+    }
   };
 
   const handleUseCasesJsonChange = (newJson: string, immediate?: boolean) => {
-    ucHistory.setValue(newJson, immediate);
-    localStorage.setItem(USECASES_STORAGE_KEY, newJson);
+    if (isVsCode) {
+      setVscodeContent(prev => ({
+        ...(prev ?? { architecture: '', useCases: '' }),
+        useCases: newJson,
+      }));
+    } else {
+      ucHistory.setValue(newJson, immediate);
+      localStorage.setItem(USECASES_STORAGE_KEY, newJson);
+    }
   };
 
   const handleFontSizeChange = (newSize: FontSize) => {
@@ -466,8 +542,6 @@ export function App() {
             json={mergedJson ?? ''}
             hasValidDiagram={layout !== null}
             onLoadExample={handleLoadExample}
-            theme={theme}
-            onToggleTheme={toggleTheme}
             onShare={handleShare}
             shareStatus={shareStatus}
             onImport={handleImport}
@@ -521,9 +595,13 @@ export function App() {
         }
         canvas={<UmlCanvas ref={canvasRef} layout={layout} onEntityClick={handleEntityClick} />}
         useCasePanel={<UseCasePanel useCases={useCases} entities={entities} actors={actors} />}
-        coveragePanel={<CoveragePanel diagram={layout?.diagram ?? null} warnings={completenessWarnings} />}
+        coveragePanel={
+          <CoveragePanel diagram={layout?.diagram ?? null} warnings={completenessWarnings} />
+        }
         activeTab={activeTab}
         onTabChange={setActiveTab}
+        theme={theme}
+        onToggleTheme={toggleTheme}
       />
     </div>
   );
