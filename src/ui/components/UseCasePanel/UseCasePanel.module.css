@@ -78,10 +78,43 @@
   color: var(--amber);
 }
 
+.actorRef {
+  color: var(--emerald);
+}
+
 .cardDescription {
   font-size: var(--font-base);
   color: var(--text-secondary);
   margin-bottom: var(--space-md);
+}
+
+.conditions {
+  margin-bottom: var(--space-sm);
+}
+
+.conditionsLabel {
+  font-size: var(--font-sm);
+  color: var(--text-secondary);
+  font-weight: 600;
+  margin-bottom: var(--space-xs);
+}
+
+.conditionsList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: var(--font-sm);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+}
+
+.conditionItem {
+  padding: var(--space-xs) 0;
+}
+
+.conditionItem::before {
+  content: "\2022 ";
+  color: var(--text-muted);
 }
 
 .scenarios {

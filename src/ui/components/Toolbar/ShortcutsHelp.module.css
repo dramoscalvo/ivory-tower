@@ -36,7 +36,9 @@
   color: var(--text-secondary);
   cursor: pointer;
   border-radius: 4px;
-  transition: color var(--transition-fast), background var(--transition-fast);
+  transition:
+    color var(--transition-fast),
+    background var(--transition-fast);
 }
 
 .closeButton:hover {

@@ -13,11 +13,16 @@ interface Rect {
 }
 
 function rectsOverlap(a: Rect, b: Rect): boolean {
-  return !(a.x + a.width < b.x || b.x + b.width < a.x || a.y + a.height < b.y || b.y + b.height < a.y);
+  return !(
+    a.x + a.width < b.x ||
+    b.x + b.width < a.x ||
+    a.y + a.height < b.y ||
+    b.y + b.height < a.y
+  );
 }
 
 export function computeLabelPositions(
-  relationships: RelationshipLayout[]
+  relationships: RelationshipLayout[],
 ): Map<string, { x: number; y: number }> {
   const positions = new Map<string, { x: number; y: number }>();
   const rects = new Map<string, Rect>();

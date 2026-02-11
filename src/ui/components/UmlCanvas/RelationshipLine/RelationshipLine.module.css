@@ -22,3 +22,14 @@
   fill: var(--diagram-line);
   text-anchor: middle;
 }
+
+.dimmed {
+  opacity: 0.15;
+  transition: opacity 0.2s ease;
+}
+
+.cardinality {
+  font-family: var(--font-sans);
+  font-size: var(--font-label);
+  fill: var(--diagram-line);
+}

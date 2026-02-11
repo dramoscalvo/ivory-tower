@@ -7,7 +7,11 @@ interface ValidationErrorsProps {
   onErrorClick?: (line: number) => void;
 }
 
-export function ValidationErrors({ parseError, validationErrors, onErrorClick }: ValidationErrorsProps) {
+export function ValidationErrors({
+  parseError,
+  validationErrors,
+  onErrorClick,
+}: ValidationErrorsProps) {
   if (!parseError && validationErrors.length === 0) {
     return null;
   }

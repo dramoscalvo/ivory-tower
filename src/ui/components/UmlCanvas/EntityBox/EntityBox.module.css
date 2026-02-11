@@ -36,6 +36,11 @@
   stroke: var(--entity-type-stroke);
 }
 
+.enumType {
+  fill: var(--entity-enum-fill);
+  stroke: var(--entity-enum-stroke);
+}
+
 .stereotype {
   font-family: var(--font-mono);
   font-size: var(--font-stereotype);
@@ -57,4 +62,9 @@
 
 .clickable {
   cursor: pointer;
+}
+
+.dimmed {
+  opacity: 0.25;
+  transition: opacity 0.2s ease;
 }

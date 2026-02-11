@@ -1,0 +1,85 @@
+.wrapper {
+  position: relative;
+}
+
+.trigger {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--button-padding-y) var(--button-padding-x);
+  background: var(--btn-secondary-bg);
+  border: 1px solid var(--btn-secondary-border);
+  border-radius: 4px;
+  color: var(--text-primary);
+  font-size: var(--font-md);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.trigger:hover:not(:disabled) {
+  background: var(--btn-secondary-hover);
+}
+
+.trigger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.triggerPrimary {
+  background: var(--btn-primary-bg);
+  border-color: var(--btn-primary-border);
+}
+
+.triggerPrimary:hover:not(:disabled) {
+  background: var(--btn-primary-hover);
+}
+
+.chevron {
+  width: 0.625rem;
+  height: 0.625rem;
+  transition: transform var(--transition-fast);
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
+.menu {
+  position: absolute;
+  top: calc(100% + var(--space-xs));
+  right: 0;
+  min-width: 10rem;
+  background: var(--bg-toolbar);
+  border: 1px solid var(--border-primary);
+  border-radius: 4px;
+  padding: var(--space-xs) 0;
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.menuItem {
+  display: block;
+  width: 100%;
+  padding: var(--space-sm) var(--space-lg);
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  font-size: var(--font-md);
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.menuItem:hover:not(:disabled) {
+  background: var(--bg-button-hover);
+}
+
+.menuItem:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.menuItemPrimary {
+  font-weight: 600;
+}

@@ -21,7 +21,9 @@
   font-size: var(--font-base);
   cursor: pointer;
   border-radius: 0.25rem;
-  transition: background var(--transition-fast), color var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
 }
 
 .tab:hover {

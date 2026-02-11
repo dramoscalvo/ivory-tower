@@ -16,12 +16,17 @@ export function calculateEntitySize(entity: Entity): Size {
     ...(entity.types ?? []),
   ];
 
-  const memberCount = members.length;
+  const valuesCount = entity.values?.length ?? 0;
+  const memberCount = members.length + valuesCount;
   const height = ENTITY_HEADER_HEIGHT + memberCount * MEMBER_HEIGHT + ENTITY_PADDING;
 
   let maxTextWidth = entity.name.length * CHAR_WIDTH;
   if (entity.generics && entity.generics.length > 0) {
     maxTextWidth += (entity.generics.join(', ').length + 2) * CHAR_WIDTH;
+  }
+
+  for (const value of entity.values ?? []) {
+    maxTextWidth = Math.max(maxTextWidth, value.length * CHAR_WIDTH);
   }
 
   for (const attr of entity.attributes ?? []) {
@@ -48,7 +53,7 @@ export function calculateEntitySize(entity: Entity): Size {
 
 export function findConnectionPoints(
   sourceLayout: EntityLayout,
-  targetLayout: EntityLayout
+  targetLayout: EntityLayout,
 ): { source: ConnectionPoint; target: ConnectionPoint } {
   const sourceCenter = {
     x: sourceLayout.position.x + sourceLayout.size.width / 2,

@@ -7,6 +7,7 @@ import styles from './EditorLayout.module.css';
 const TABS: Tab[] = [
   { id: 'architecture', label: 'Architecture' },
   { id: 'usecases', label: 'Use Cases' },
+  { id: 'coverage', label: 'Coverage' },
 ];
 
 interface EditorLayoutProps {
@@ -15,6 +16,7 @@ interface EditorLayoutProps {
   useCasesEditor: ReactNode;
   canvas: ReactNode;
   useCasePanel: ReactNode;
+  coveragePanel: ReactNode;
   activeTab: string;
   onTabChange: (tabId: string) => void;
 }
@@ -31,7 +33,16 @@ function loadEditorWidth(): number {
   return value;
 }
 
-export function EditorLayout({ toolbar, architectureEditor, useCasesEditor, canvas, useCasePanel, activeTab, onTabChange }: EditorLayoutProps) {
+export function EditorLayout({
+  toolbar,
+  architectureEditor,
+  useCasesEditor,
+  canvas,
+  useCasePanel,
+  coveragePanel,
+  activeTab,
+  onTabChange,
+}: EditorLayoutProps) {
   const [editorWidth, setEditorWidth] = useState(loadEditorWidth);
   const [isResizing, setIsResizing] = useState(false);
   const mainRef = useRef<HTMLElement>(null);
@@ -89,8 +100,10 @@ export function EditorLayout({ toolbar, architectureEditor, useCasesEditor, canv
           <TabPanel tabs={TABS} activeTab={activeTab} onTabChange={onTabChange}>
             {activeTab === 'architecture' ? (
               <div className={styles.canvas}>{canvas}</div>
-            ) : (
+            ) : activeTab === 'usecases' ? (
               useCasePanel
+            ) : (
+              coveragePanel
             )}
           </TabPanel>
         </section>

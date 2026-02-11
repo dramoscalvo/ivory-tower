@@ -3,15 +3,22 @@ import type { Entity, Visibility, Attribute, Method } from '../domain/models/Ent
 import type { Relationship, RelationshipType } from '../domain/models/Relationship';
 
 function slugify(name: string): string {
-  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
 }
 
 function parseVisibility(prefix: string): Visibility | undefined {
   switch (prefix) {
-    case '+': return 'public';
-    case '-': return 'private';
-    case '#': return 'protected';
-    default: return undefined;
+    case '+':
+      return 'public';
+    case '-':
+      return 'private';
+    case '#':
+      return 'protected';
+    default:
+      return undefined;
   }
 }
 
@@ -37,9 +44,8 @@ export function parsePlantUmlClassDiagram(input: string): UMLDiagram {
   // Extract content between @startuml and @enduml
   const startMatch = input.indexOf('@startuml');
   const endMatch = input.indexOf('@enduml');
-  const content = startMatch !== -1
-    ? input.substring(startMatch, endMatch !== -1 ? endMatch : undefined)
-    : input;
+  const content =
+    startMatch !== -1 ? input.substring(startMatch, endMatch !== -1 ? endMatch : undefined) : input;
 
   const lines = content.split('\n').map(l => l.trim());
   let currentEntity: Entity | null = null;
@@ -129,10 +135,15 @@ export function parsePlantUmlClassDiagram(input: string): UMLDiagram {
         const [, vis, name, params, ret] = methodMatch;
         const method: Method = {
           name,
-          parameters: params ? params.split(',').map(p => {
-            const parts = p.trim().split(/\s*:\s*/);
-            return { name: parts[0] || 'arg', type: { name: parts[1] || 'void' } };
-          }).filter(p => p.name) : [],
+          parameters: params
+            ? params
+                .split(',')
+                .map(p => {
+                  const parts = p.trim().split(/\s*:\s*/);
+                  return { name: parts[0] || 'arg', type: { name: parts[1] || 'void' } };
+                })
+                .filter(p => p.name)
+            : [],
           returnType: { name: ret?.trim() || 'void' },
           visibility: parseVisibility(vis),
         };

@@ -16,5 +16,8 @@ export interface UseCase {
   description?: string;
   entityRef: string;
   methodRef?: string;
+  actorRef?: string;
+  preconditions?: string[];
+  postconditions?: string[];
   scenarios: Scenario[];
 }

@@ -1,4 +1,4 @@
-export type EntityType = 'class' | 'interface' | 'module' | 'type' | 'abstract-class';
+export type EntityType = 'class' | 'interface' | 'module' | 'type' | 'abstract-class' | 'enum';
 
 export type Visibility = 'public' | 'private' | 'protected';
 
@@ -50,4 +50,5 @@ export interface Entity {
   methods?: Method[];
   functions?: Function[];
   types?: TypeDefinition[];
+  values?: string[];
 }

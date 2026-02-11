@@ -15,7 +15,7 @@ export function useKeyboardShortcuts(handlers: KeyboardShortcutHandlers) {
 
       // Skip if focus is inside a code editor (let editor handle its own undo/redo)
       const active = document.activeElement;
-      const inEditor = active?.closest('.pce-wrapper') !== null;
+      const inEditor = active?.closest('.cm-editor') !== null;
 
       if (e.key === 'Escape') {
         e.preventDefault();
@@ -29,7 +29,7 @@ export function useKeyboardShortcuts(handlers: KeyboardShortcutHandlers) {
         return;
       }
 
-      if (mod && (e.key === 'e' || e.key === 'E') && !e.shiftKey) {
+      if (mod && e.shiftKey && (e.key === 'e' || e.key === 'E')) {
         e.preventDefault();
         handlers.onExport();
         return;
@@ -56,7 +56,7 @@ export function useKeyboardShortcuts(handlers: KeyboardShortcutHandlers) {
       }
     };
 
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    document.addEventListener('keydown', handleKeyDown, true);
+    return () => document.removeEventListener('keydown', handleKeyDown, true);
   }, [handlers]);
 }

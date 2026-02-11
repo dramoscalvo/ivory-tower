@@ -61,7 +61,11 @@ export function buildPathLineMap(json: string): Map<string, number> {
           collectingKey = false;
           // Check if followed by ':'
           let j = i + 1;
-          while (j < json.length && (json[j] === ' ' || json[j] === '\t' || json[j] === '\n' || json[j] === '\r')) j++;
+          while (
+            j < json.length &&
+            (json[j] === ' ' || json[j] === '\t' || json[j] === '\n' || json[j] === '\r')
+          )
+            j++;
           if (json[j] === ':') {
             // This is a key
             const top = stack[stack.length - 1];
@@ -114,7 +118,11 @@ export function buildPathLineMap(json: string): Map<string, number> {
         // Store key for nesting - will be used when [ or { follows
         // Check what follows after the colon
         let j = i + 1;
-        while (j < json.length && (json[j] === ' ' || json[j] === '\t' || json[j] === '\n' || json[j] === '\r')) j++;
+        while (
+          j < json.length &&
+          (json[j] === ' ' || json[j] === '\t' || json[j] === '\n' || json[j] === '\r')
+        )
+          j++;
         if (json[j] === '[' || json[j] === '{') {
           // Update the next stack entry's parent key
           // We'll handle this by modifying the stack when [ or { is encountered

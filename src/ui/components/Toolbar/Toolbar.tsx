@@ -1,10 +1,33 @@
 import { useRef } from 'react';
 import { useExport } from './useExport';
+import { ExportDropdown } from './ExportDropdown';
+import { AddDropdown } from './AddDropdown';
 import { ShortcutsHelp } from './ShortcutsHelp';
 import { ImportModal } from './ImportModal';
+import { LearnModal } from './LearnModal';
+import { AddEntityModal } from './AddEntityModal';
+import { AddRelationshipModal } from './AddRelationshipModal';
+import { AddUseCaseModal } from './AddUseCaseModal';
+import { AddEndpointModal } from './AddEndpointModal';
 import type { Theme } from '../../hooks/useTheme';
 import type { ShareStatus } from '../../hooks/useUrlSharing';
 import styles from './Toolbar.module.css';
+
+interface EntityOption {
+  id: string;
+  name: string;
+  methods?: { name: string }[];
+}
+
+interface ActorOption {
+  id: string;
+  name: string;
+}
+
+interface UseCaseOption {
+  id: string;
+  name: string;
+}
 
 interface ToolbarProps {
   json: string;
@@ -15,14 +38,45 @@ interface ToolbarProps {
   onShare: () => void;
   shareStatus: ShareStatus;
   onImport: (json: string) => void;
+  onExportSvg: () => void;
+  entities: EntityOption[];
+  actors: ActorOption[];
+  useCases: UseCaseOption[];
+  onAddEntity: (entityJson: string) => void;
+  onAddRelationship: (relationshipJson: string) => void;
+  onAddUseCase: (useCaseJson: string) => void;
+  onAddEndpoint: (endpointJson: string) => void;
 }
 
-export function Toolbar({ json, hasValidDiagram, onLoadExample, theme, onToggleTheme, onShare, shareStatus, onImport }: ToolbarProps) {
-  const { handleExport, canExport } = useExport(json, hasValidDiagram);
+export function Toolbar({
+  json,
+  hasValidDiagram,
+  onLoadExample,
+  theme,
+  onToggleTheme,
+  onShare,
+  shareStatus,
+  onImport,
+  onExportSvg,
+  entities,
+  actors,
+  useCases,
+  onAddEntity,
+  onAddRelationship,
+  onAddUseCase,
+  onAddEndpoint,
+}: ToolbarProps) {
+  const { handleExport, handleExportJson, handleExportMermaid, canExport } = useExport(json, hasValidDiagram);
   const shortcutsRef = useRef<HTMLDialogElement>(null);
   const importRef = useRef<HTMLDialogElement>(null);
+  const learnRef = useRef<HTMLDialogElement>(null);
+  const addEntityRef = useRef<HTMLDialogElement>(null);
+  const addRelRef = useRef<HTMLDialogElement>(null);
+  const addUcRef = useRef<HTMLDialogElement>(null);
+  const addEpRef = useRef<HTMLDialogElement>(null);
 
-  const shareLabel = shareStatus === 'copied' ? 'Copied!' : shareStatus === 'error' ? 'Error' : 'Share';
+  const shareLabel =
+    shareStatus === 'copied' ? 'Copied!' : shareStatus === 'error' ? 'Error' : 'Share';
 
   return (
     <div className={styles.toolbar}>
@@ -50,6 +104,17 @@ export function Toolbar({ json, hasValidDiagram, onLoadExample, theme, onToggleT
         </button>
         <button
           className={styles.iconButton}
+          onClick={() => learnRef.current?.showModal()}
+          title="Learning resources"
+          type="button"
+          aria-label="Learning resources"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 11.55C9.64 9.35 6.48 8 3 8v11c3.48 0 6.64 1.35 9 3.55 2.36-2.19 5.52-3.55 9-3.55V8c-3.48 0-6.64 1.35-9 3.55zM12 8c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3z" />
+          </svg>
+        </button>
+        <button
+          className={styles.iconButton}
           onClick={() => shortcutsRef.current?.showModal()}
           title="Keyboard shortcuts"
           type="button"
@@ -59,6 +124,13 @@ export function Toolbar({ json, hasValidDiagram, onLoadExample, theme, onToggleT
             <path d="M20 5H4c-1.1 0-1.99.9-1.99 2L2 17c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm-9 3h2v2h-2V8zm0 3h2v2h-2v-2zM8 8h2v2H8V8zm0 3h2v2H8v-2zm-1 2H5v-2h2v2zm0-3H5V8h2v2zm9 7H8v-2h8v2zm0-4h-2v-2h2v2zm0-3h-2V8h2v2zm3 3h-2v-2h2v2zm0-3h-2V8h2v2z" />
           </svg>
         </button>
+        <AddDropdown
+          entityCount={entities.length}
+          onAddEntity={() => addEntityRef.current?.showModal()}
+          onAddRelationship={() => addRelRef.current?.showModal()}
+          onAddUseCase={() => addUcRef.current?.showModal()}
+          onAddEndpoint={() => addEpRef.current?.showModal()}
+        />
         <button
           className={styles.button}
           onClick={() => importRef.current?.showModal()}
@@ -66,7 +138,7 @@ export function Toolbar({ json, hasValidDiagram, onLoadExample, theme, onToggleT
         >
           Import
         </button>
-        <button className={styles.button} onClick={onLoadExample}>
+        <button className={styles.button} onClick={onLoadExample} type="button">
           Load Example
         </button>
         <button
@@ -77,22 +149,40 @@ export function Toolbar({ json, hasValidDiagram, onLoadExample, theme, onToggleT
         >
           {shareLabel}
         </button>
-        <button
-          className={`${styles.button} ${styles.primary}`}
-          onClick={handleExport}
-          disabled={!canExport}
-        >
-          Export TOON
-        </button>
+        <ExportDropdown
+          canExport={canExport}
+          onExportToon={handleExport}
+          onExportJson={handleExportJson}
+          onExportSvg={onExportSvg}
+          onExportMermaid={handleExportMermaid}
+        />
       </div>
-      <ShortcutsHelp
-        ref={shortcutsRef}
-        onClose={() => shortcutsRef.current?.close()}
+      <ShortcutsHelp ref={shortcutsRef} onClose={() => shortcutsRef.current?.close()} />
+      <ImportModal ref={importRef} onClose={() => importRef.current?.close()} onImport={onImport} />
+      <LearnModal ref={learnRef} onClose={() => learnRef.current?.close()} />
+      <AddEntityModal
+        ref={addEntityRef}
+        onClose={() => addEntityRef.current?.close()}
+        onAdd={onAddEntity}
       />
-      <ImportModal
-        ref={importRef}
-        onClose={() => importRef.current?.close()}
-        onImport={onImport}
+      <AddRelationshipModal
+        ref={addRelRef}
+        entities={entities}
+        onClose={() => addRelRef.current?.close()}
+        onAdd={onAddRelationship}
+      />
+      <AddUseCaseModal
+        ref={addUcRef}
+        entities={entities}
+        actors={actors}
+        onClose={() => addUcRef.current?.close()}
+        onAdd={onAddUseCase}
+      />
+      <AddEndpointModal
+        ref={addEpRef}
+        useCases={useCases}
+        onClose={() => addEpRef.current?.close()}
+        onAdd={onAddEndpoint}
       />
     </div>
   );

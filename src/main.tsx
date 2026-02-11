@@ -16,5 +16,5 @@ createRoot(document.getElementById('root')!).render(
     <ServiceProvider services={services}>
       <App />
     </ServiceProvider>
-  </StrictMode>
+  </StrictMode>,
 );

@@ -36,7 +36,9 @@
   color: var(--text-secondary);
   cursor: pointer;
   border-radius: 4px;
-  transition: color var(--transition-fast), background var(--transition-fast);
+  transition:
+    color var(--transition-fast),
+    background var(--transition-fast);
 }
 
 .closeButton:hover {
@@ -49,6 +51,59 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-md);
+}
+
+.fileSection {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.fileInput {
+  display: none;
+}
+
+.fileButton {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--button-padding-y) var(--button-padding-x);
+  background: var(--bg-button);
+  color: var(--text-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: 4px;
+  font-size: var(--font-md);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.fileButton:hover {
+  background: var(--bg-button-hover);
+}
+
+.fileHint {
+  font-size: var(--font-base);
+  color: var(--text-secondary);
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border-primary);
+}
+
+.dividerText {
+  font-size: var(--font-base);
+  color: var(--text-secondary);
+  white-space: nowrap;
 }
 
 .formatSelector {

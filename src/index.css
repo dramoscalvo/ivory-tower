@@ -1,9 +1,60 @@
+/* Self-hosted fonts (JetBrains Mono + Open Sans) */
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url('/fonts/jetbrains-mono-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191,
+    U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url('/fonts/jetbrains-mono-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7,
+    U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F,
+    U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F,
+    U+A720-A7FF;
+}
+
+@font-face {
+  font-family: 'Open Sans';
+  font-style: normal;
+  font-weight: 400 600;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url('/fonts/open-sans-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191,
+    U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Open Sans';
+  font-style: normal;
+  font-weight: 400 600;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url('/fonts/open-sans-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7,
+    U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F,
+    U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F,
+    U+A720-A7FF;
+}
+
 /*
   Josh's Custom CSS Reset
   https://www.joshwcomeau.com/css/custom-css-reset/
 */
 
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
@@ -22,16 +73,29 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-img, picture, video, canvas, svg {
+img,
+picture,
+video,
+canvas,
+svg {
   display: block;
   max-width: 100%;
 }
 
-input, button, textarea, select {
+input,
+button,
+textarea,
+select {
   font: inherit;
 }
 
-p, h1, h2, h3, h4, h5, h6 {
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   overflow-wrap: break-word;
 }
 
@@ -39,11 +103,17 @@ p {
   text-wrap: pretty;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   text-wrap: balance;
 }
 
-#root, #__next {
+#root,
+#__next {
   isolation: isolate;
 }
 
@@ -145,6 +215,8 @@ h1, h2, h3, h4, h5, h6 {
   --entity-abstract-fill: var(--plum);
   --entity-type-stroke: var(--amber);
   --entity-type-fill: var(--bronze);
+  --entity-enum-stroke: var(--crimson);
+  --entity-enum-fill: var(--wine);
 
   /* SVG/diagram elements */
   --diagram-line: var(--charcoal);
@@ -172,23 +244,23 @@ h1, h2, h3, h4, h5, h6 {
      ============================================ */
 
   /* Base: 1rem = 16px */
-  --space-xs: 0.25rem;   /* 4px */
-  --space-sm: 0.5rem;    /* 8px */
-  --space-md: 0.75rem;   /* 12px */
-  --space-lg: 1rem;      /* 16px */
+  --space-xs: 0.25rem; /* 4px */
+  --space-sm: 0.5rem; /* 8px */
+  --space-md: 0.75rem; /* 12px */
+  --space-lg: 1rem; /* 16px */
 
   /* Font sizes */
-  --font-xs: 0.625rem;   /* 10px */
-  --font-sm: 0.6875rem;  /* 11px */
-  --font-base: 0.75rem;  /* 12px */
-  --font-md: 0.8125rem;  /* 13px */
-  --font-lg: 0.875rem;   /* 14px */
-  --font-lg2: 1rem;      /* 16px */
-  --font-xl: 1.125rem;   /* 18px */
+  --font-xs: 0.625rem; /* 10px */
+  --font-sm: 0.6875rem; /* 11px */
+  --font-base: 0.75rem; /* 12px */
+  --font-md: 0.8125rem; /* 13px */
+  --font-lg: 0.875rem; /* 14px */
+  --font-lg2: 1rem; /* 16px */
+  --font-xl: 1.125rem; /* 18px */
 
   /* Sizes */
-  --size-control: 2rem;  /* 32px */
-  --size-scrollable-max: 9.375rem;  /* 150px */
+  --size-control: 2rem; /* 32px */
+  --size-scrollable-max: 9.375rem; /* 150px */
 
   /* Transitions */
   --transition-fast: 0.15s;
@@ -260,7 +332,7 @@ h1, h2, h3, h4, h5, h6 {
   --font-title: var(--font-xl);
 }
 
-[data-theme="light"] {
+[data-theme='light'] {
   color-scheme: light;
 
   /* Layout backgrounds */
@@ -296,6 +368,8 @@ h1, h2, h3, h4, h5, h6 {
   --entity-abstract-fill: #f0e8ff;
   --entity-type-stroke: var(--amber);
   --entity-type-fill: #fef3e0;
+  --entity-enum-stroke: var(--crimson);
+  --entity-enum-fill: #fde8ec;
 
   /* SVG/diagram elements */
   --diagram-line: #888888;

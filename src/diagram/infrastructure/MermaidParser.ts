@@ -3,15 +3,22 @@ import type { Entity, Visibility, Attribute, Method } from '../domain/models/Ent
 import type { Relationship, RelationshipType } from '../domain/models/Relationship';
 
 function slugify(name: string): string {
-  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
 }
 
 function parseVisibility(prefix: string): Visibility | undefined {
   switch (prefix) {
-    case '+': return 'public';
-    case '-': return 'private';
-    case '#': return 'protected';
-    default: return undefined;
+    case '+':
+      return 'public';
+    case '-':
+      return 'private';
+    case '#':
+      return 'protected';
+    default:
+      return undefined;
   }
 }
 
@@ -87,10 +94,15 @@ export function parseMermaidClassDiagram(input: string): UMLDiagram {
         const [, vis, name, params, ret] = methodMatch;
         const method: Method = {
           name,
-          parameters: params ? params.split(',').map(p => {
-            const parts = p.trim().split(/\s*:\s*/);
-            return { name: parts[0] || 'arg', type: { name: parts[1] || 'void' } };
-          }).filter(p => p.name) : [],
+          parameters: params
+            ? params
+                .split(',')
+                .map(p => {
+                  const parts = p.trim().split(/\s*:\s*/);
+                  return { name: parts[0] || 'arg', type: { name: parts[1] || 'void' } };
+                })
+                .filter(p => p.name)
+            : [],
           returnType: { name: ret?.trim() || 'void' },
           visibility: parseVisibility(vis),
         };

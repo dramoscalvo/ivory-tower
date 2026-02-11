@@ -5,6 +5,8 @@ import styles from './EntityBox.module.css';
 interface EntityBoxProps {
   layout: EntityLayout;
   onClick?: (entityId: string) => void;
+  onHover?: (entityId: string | null) => void;
+  dimmed?: boolean;
 }
 
 const HEADER_HEIGHT = 32;
@@ -19,12 +21,14 @@ function getTypeLabel(type: string): string {
       return '<<module>>';
     case 'type':
       return '<<type>>';
+    case 'enum':
+      return '<<enumeration>>';
     default:
       return '';
   }
 }
 
-export function EntityBox({ layout, onClick }: EntityBoxProps) {
+export function EntityBox({ layout, onClick, onHover, dimmed }: EntityBoxProps) {
   const { entity, position, size } = layout;
   const typeLabel = getTypeLabel(entity.type);
   const genericsText = entity.generics?.length ? `<${entity.generics.join(', ')}>` : '';
@@ -35,6 +39,7 @@ export function EntityBox({ layout, onClick }: EntityBoxProps) {
     module: styles.moduleType,
     type: styles.typeType,
     'abstract-class': styles.abstractType,
+    enum: styles.enumType,
   };
 
   const boxStyle = typeStyles[entity.type] || styles.classType;
@@ -49,8 +54,10 @@ export function EntityBox({ layout, onClick }: EntityBoxProps) {
   return (
     <g
       transform={`translate(${position.x}, ${position.y})`}
-      className={`${styles.box} ${onClick ? styles.clickable : ''}`}
+      className={`${styles.box} ${onClick ? styles.clickable : ''} ${dimmed ? styles.dimmed : ''}`}
       onClick={handleClick}
+      onMouseEnter={() => onHover?.(entity.id)}
+      onMouseLeave={() => onHover?.(null)}
     >
       <rect
         className={`${styles.background} ${boxStyle}`}
@@ -75,6 +82,7 @@ export function EntityBox({ layout, onClick }: EntityBoxProps) {
       </text>
 
       <MemberList
+        values={entity.values}
         attributes={entity.attributes}
         methods={entity.methods}
         functions={entity.functions}

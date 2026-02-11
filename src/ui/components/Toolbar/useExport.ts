@@ -12,5 +12,23 @@ export function useExport(json: string, hasValidDiagram: boolean) {
     }
   };
 
-  return { handleExport, canExport: hasValidDiagram };
+  const handleExportJson = () => {
+    if (!hasValidDiagram) return;
+
+    const diagram = diagramService.getDiagram(json);
+    if (diagram) {
+      exportService.exportAsJson(diagram);
+    }
+  };
+
+  const handleExportMermaid = () => {
+    if (!hasValidDiagram) return;
+
+    const diagram = diagramService.getDiagram(json);
+    if (diagram) {
+      exportService.exportAsMermaid(diagram);
+    }
+  };
+
+  return { handleExport, handleExportJson, handleExportMermaid, canExport: hasValidDiagram };
 }

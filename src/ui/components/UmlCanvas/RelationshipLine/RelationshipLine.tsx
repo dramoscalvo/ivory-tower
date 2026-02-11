@@ -5,6 +5,7 @@ import styles from './RelationshipLine.module.css';
 interface RelationshipLineProps {
   layout: RelationshipLayout;
   labelPosition?: { x: number; y: number };
+  dimmed?: boolean;
 }
 
 function getMarkerEnd(type: RelationshipType): string {
@@ -32,7 +33,27 @@ function getLineStyle(type: RelationshipType): string {
   }
 }
 
-export function RelationshipLine({ layout, labelPosition }: RelationshipLineProps) {
+const CARDINALITY_OFFSET = 14;
+
+function getCardinalityPosition(
+  point: { x: number; y: number; side: string },
+  offset: number,
+): { x: number; y: number; anchor: 'start' | 'middle' | 'end' } {
+  switch (point.side) {
+    case 'top':
+      return { x: point.x + offset, y: point.y - 6, anchor: 'start' };
+    case 'bottom':
+      return { x: point.x + offset, y: point.y + 16, anchor: 'start' };
+    case 'left':
+      return { x: point.x - 6, y: point.y - offset, anchor: 'end' };
+    case 'right':
+      return { x: point.x + 6, y: point.y - offset, anchor: 'start' };
+    default:
+      return { x: point.x + offset, y: point.y - 6, anchor: 'start' };
+  }
+}
+
+export function RelationshipLine({ layout, labelPosition, dimmed }: RelationshipLineProps) {
   const { relationship, source, target } = layout;
   const markerEnd = getMarkerEnd(relationship.type);
   const lineStyle = getLineStyle(relationship.type);
@@ -58,12 +79,39 @@ export function RelationshipLine({ layout, labelPosition }: RelationshipLineProp
   const labelX = labelPosition?.x ?? midX;
   const labelY = labelPosition?.y ?? midY - 8;
 
+  const srcCard = relationship.sourceCardinality
+    ? getCardinalityPosition(source, CARDINALITY_OFFSET)
+    : null;
+  const tgtCard = relationship.targetCardinality
+    ? getCardinalityPosition(target, CARDINALITY_OFFSET)
+    : null;
+
   return (
-    <g className={styles.relationship}>
+    <g className={`${styles.relationship} ${dimmed ? styles.dimmed : ''}`}>
       <path d={path} className={`${styles.line} ${lineStyle}`} markerEnd={markerEnd} />
       {relationship.label && (
         <text x={labelX} y={labelY} className={styles.label}>
           {relationship.label}
+        </text>
+      )}
+      {srcCard && (
+        <text
+          x={srcCard.x}
+          y={srcCard.y}
+          className={styles.cardinality}
+          textAnchor={srcCard.anchor}
+        >
+          {relationship.sourceCardinality}
+        </text>
+      )}
+      {tgtCard && (
+        <text
+          x={tgtCard.x}
+          y={tgtCard.y}
+          className={styles.cardinality}
+          textAnchor={tgtCard.anchor}
+        >
+          {relationship.targetCardinality}
         </text>
       )}
     </g>

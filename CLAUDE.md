@@ -1,201 +1,203 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+## Product Vision
+
+Ivory Tower produces a **comprehensive, machine-readable project specification** that lives in a repo and is consumed by AI tools (Claude Code, Cursor, etc.) to build entire projects. The visual diagram is a verification/navigation aid for the human author.
+
+- **Editing format**: JSON (single document, collapsible sections in the editor)
+- **AI-facing export**: Enhanced TOON (compact, self-documenting) + JSON (standard, for tooling)
+- **Target user**: Someone designing a software project who may not be a UML expert
 
 ## Project Overview
 
-React 19 + TypeScript + Vite frontend application with the React Compiler enabled for automatic component optimization.
-Import exact version Always
-When selecting external packages, select the one with less dependencies (preferibly none), smaller size, recent updates and max weekly downloads.
-Prefer packages that excel doing just one think than those which do plenty in a bad way.
+React 19 + TypeScript + Vite frontend with the React Compiler (babel-plugin-react-compiler) enabled.
 
-## Development Commands
+## Dependencies
+
+- Always install exact versions (no `^` or `~` prefixes)
+- Selection criteria (in priority order): fewest dependencies (preferably zero), most weekly downloads, most recent updates, smallest size
+- Prefer a package that does few things greatly over a bigger one that does many things poorly
+
+## Commands
 
 ```bash
-pnpm dev       # Start dev server with HMR
-pnpm build     # TypeScript compilation + Vite production build
-pnpm lint      # Run ESLint
-pnpm preview   # Preview production build
+pnpm dev             # Dev server with HMR
+pnpm build           # TypeScript + Vite production build
+pnpm lint            # ESLint
+pnpm format          # Prettier (write)
+pnpm format:check    # Prettier (check only)
+pnpm test            # Vitest (unit + integration)
+pnpm test:coverage   # Vitest with coverage
+pnpm test:e2e        # Playwright end-to-end tests
 ```
 
 ## Architecture
 
-- **Entry point:** `src/main.tsx` renders `<App />` into `#root` in `index.html`
-- **Build tool:** Vite with `@vitejs/plugin-react` and Babel React Compiler
-- **Package manager:** pnpm
-- **Node version:** ^24.13.0
+Three bounded contexts, each following domain-driven structure (`domain/`, `application/`, `infrastructure/`):
 
-## TypeScript Configuration
+- **`src/diagram/`** — UML diagram models, validation, layout, parsing
+- **`src/usecase/`** — Use case models and validation
+- **`src/export/`** — Diagram export (TOON formatting, JSON export, SVG export, Mermaid export, file download)
 
-- Strict mode enabled
-- ES2022 target with ESNext modules
-- Three configs: `tsconfig.json` (references), `tsconfig.app.json` (src/), `tsconfig.node.json` (build tools)
+UI layer:
 
-## Linting
+- **`src/ui/components/`** — Feature-based directories (App, EditorLayout, Toolbar, UmlCanvas, JsonEditor, UseCasePanel, CoveragePanel, etc.)
+- **`src/ui/context/`** — Service injection via `ServiceContext`, accessed with `useServices()` hook
+- **`src/ui/hooks/`** — Shared hooks: `useHistory`, `useTheme`, `useUrlSharing`, `useKeyboardShortcuts`
 
-ESLint flat config (`eslint.config.js`) with:
-- typescript-eslint recommended rules
-- React Hooks rules
-- React Refresh rules
-- Targets `**/*.{ts,tsx}`, ignores `dist/`
+Entry point: `src/main.tsx` renders `<App />` into `#root`.
+
+## JSON Schema
+
+The specification document has these top-level keys:
+
+| Key | Required | Description |
+|---|---|---|
+| `title` | Yes | Diagram title |
+| `project` | No | Project metadata: `name`, `description`, `stack` (key-value), `conventions` (key-value) |
+| `actors` | No | Array of `{ id, name, description? }` — who interacts with the system |
+| `entities` | Yes | Array of entities: classes, interfaces, modules, types, abstract-classes, **enums** |
+| `relationships` | Yes | Array of relationships between entities (inheritance, implementation, composition, etc.) |
+| `endpoints` | No | Array of API endpoints: `{ id, method, path, summary?, requestBody?, response?, auth?, useCaseRef? }` |
+| `rules` | No | Array of business rules: `{ id, entityRef, field?, type, description }` |
+| `useCases` | No | Array of Gherkin-style use cases with `entityRef`, `methodRef?`, `actorRef?`, `preconditions?`, `postconditions?`, and `scenarios` |
+
+### Entity types
+
+`class`, `interface`, `module`, `type`, `abstract-class`, `enum`
+
+- **Enum entities** have a `values: string[]` field instead of attributes/methods
+- All other entity types support `attributes`, `methods`, `functions`, `types`
+
+### Validation rules
+
+- `project.name` required when `project` is present
+- Actor ids must be unique; actors need `id` and `name`
+- Entity ids must be unique; entities need `id`, `name`, `type`
+- Enum entities must have non-empty `values` array with non-empty strings
+- Relationship `sourceId`/`targetId` must reference existing entity ids; `sourceCardinality`/`targetCardinality` (if present) must be one of `1`, `0..1`, `1..*`, `*`, `0..*`
+- Use case `entityRef` must reference an existing entity; `methodRef` must exist on that entity
+- Use case `actorRef` (if present and actors are defined) must reference an existing actor id
+- Preconditions/postconditions must be arrays of non-empty strings
+- Endpoint `method` must be GET/POST/PUT/PATCH/DELETE; `auth` must be public/authenticated/admin
+- Endpoint `requestBody`/`response` `entityRef` must reference existing entity; `fields` must exist on that entity
+- Endpoint `useCaseRef` must reference an existing use case id
+- Rule `type` must be unique/invariant/validation/constraint; `entityRef` must reference existing entity
+- Rule `field` (if present) must exist on the referenced entity
+
+### Completeness warnings (non-blocking)
+
+`CompletenessValidator` produces warnings (not errors) for coverage gaps:
+
+- **uncovered-entity**: Entity has no use cases referencing it
+- **unreferenced-method**: Entity method not referenced by any use case `methodRef`
+- **usecase-no-endpoint**: Use case has no endpoint referencing it via `useCaseRef`
+- **endpoint-no-usecase**: Endpoint has no `useCaseRef`
+- **orphan-entity**: Entity has no relationships (when >1 entity exists)
 
 ## Component Patterns
 
 ### File Organization
-- Components in `src/ui/components/` with feature-based directories
+
 - Each component: `ComponentName/ComponentName.tsx` + `ComponentName.module.css`
 - Sub-components in nested directories (e.g., `UmlCanvas/EntityBox/`)
 - Custom hooks alongside components (e.g., `Toolbar/useExport.ts`)
-- Do not use Barrel exports
+- Quick-add form modals in `Toolbar/` (AddEntityModal, AddRelationshipModal, AddUseCaseModal, AddEndpointModal) — shared CSS in `QuickAddModal.module.css`
+- No barrel exports. No default exports. Named exports only.
 
 ### Component Structure
+
 ```typescript
-// Named exports only (no default exports)
-export function ComponentName() { ... }
-
 // Props interface with Props suffix
-interface ComponentNameProps {
-  value: string;
-  onChange: (value: string) => void;
-}
+interface ComponentNameProps { ... }
 
-// forwardRef for components needing ref access
+// Named export
+export function ComponentName({ value }: ComponentNameProps) { ... }
+
+// forwardRef when exposing ref handle
 export const Modal = forwardRef<HTMLDialogElement, ModalProps>(
   function Modal({ onClose }, ref) { ... }
 );
 ```
 
 ### Import Order
+
 1. React imports
 2. Component imports
 3. Type imports (with `type` keyword)
 4. CSS module import (last)
 
-```typescript
-import { useState, useRef } from 'react';
-import { ChildComponent } from './ChildComponent';
-import type { SomeType } from '../../../domain/types';
-import styles from './ComponentName.module.css';
-```
-
 ## CSS Patterns
 
-### CSS Modules
-- All styles use `.module.css` extension
-- Import as: `import styles from './Component.module.css'`
-- Access as: `className={styles.className}`
-- camelCase class names: `.editorHeader`, `.prettifyButton`
+- All styles use CSS Modules (`.module.css`), accessed as `className={styles.name}`
+- camelCase class names
+- **Always use CSS variables from `src/index.css`** — never hardcode colors
+- Two-tier variable system: Tier 1 (base colors/spacing) and Tier 2 (semantic usage) — see `src/index.css`
+- Light theme supported via `[data-theme="light"]` overrides in `src/index.css`
+- Prefer `rem`/`em` over `px` for accessibility. Use `px` only for borders/shadows.
 
-### Units
-- **Prefer relative units** (`rem`, `em`) over fixed pixels for accessibility
-- `rem` scales with user font preferences (1rem = 16px default)
-- Use `px` only for borders, shadows, or intentionally fixed sizes
-- Common conversions: 4px = 0.25rem, 8px = 0.5rem, 16px = 1rem, 32px = 2rem
+## React Rules
 
-### CSS Variables (Two-Tier System)
-
-**Always use CSS variables from `src/index.css` - never hardcode colors.**
-
-**Tier 1 - Base Definitions:**
-```css
-/* Colors */
---midnight, --navy, --ocean, --abyss     /* Dark backgrounds */
---azure, --emerald, --violet, --amber    /* Accent colors */
---ivory, --smoke, --silver, --gray       /* Light/neutral */
-
-/* Spacing */
---space-xs (4px), --space-sm (8px), --space-md (12px), --space-lg (16px)
-
-/* Font sizes */
---font-xs through --font-xl
-
-/* Other */
---transition-fast (0.15s)
-```
-
-**Tier 2 - Semantic Usage:**
-```css
-/* Backgrounds */
---bg-app, --bg-toolbar, --bg-canvas, --bg-input, --bg-button, --bg-button-hover
-
-/* Text */
---text-primary, --text-secondary, --text-code, --text-error
-
-/* Borders */
---border-primary, --border-error
-
-/* Component spacing */
---toolbar-padding-y, --toolbar-padding-x, --toolbar-gap
---button-padding-y, --button-padding-x
-```
-
-### CSS Example
-```css
-.button {
-  padding: var(--button-padding-y) var(--button-padding-x);
-  background: var(--bg-button);
-  color: var(--text-primary);
-  border: none;
-  cursor: pointer;
-  transition: background var(--transition-fast);
-}
-
-.button:hover {
-  background: var(--bg-button-hover);
-}
-```
-
-## React Patterns
-
-### Hooks
+- **Never use `useEffect` unless strictly necessary** (genuine side-effects: URL sync, localStorage, DOM APIs). Prefer `useMemo` for derived state.
+- React Compiler is enabled — do NOT manually add `useCallback`/`useMemo` for optimization. The compiler handles it. Only use `useMemo` for derived-state patterns replacing `useEffect` + `useState`.
 - `useState` with lazy initialization: `useState(() => expensiveComputation())`
 - `useRef` for DOM elements: `useRef<HTMLDialogElement>(null)`
-- `useCallback` for memoized handlers
-- Custom hooks for shared logic: `useServices()`, `useExport()`
-
-### Context
-- Service injection via `ServiceContext`
-- Access with `useServices()` hook
-- Services instantiated in `main.tsx`
-
-### Event Handling
-- Inline handlers: `onClick={handleClick}`
-- Backdrop click detection: `if (e.target === e.currentTarget)`
-- Native dialog methods: `dialogRef.current?.showModal()`
-
-### Modal/Dialog Pattern
-```typescript
-// Parent controls dialog via ref
-const dialogRef = useRef<HTMLDialogElement>(null);
-const open = () => dialogRef.current?.showModal();
-const close = () => dialogRef.current?.close();
-
-// Dialog component uses forwardRef
-<dialog ref={ref} onClick={handleBackdropClick} onClose={onClose}>
-```
 
 ## Conventions
 
-### Constants
-- SCREAMING_SNAKE_CASE: `const STORAGE_KEY = 'uml-diagram-json'`
-- Defined at module level before component
+- Constants: `SCREAMING_SNAKE_CASE` at module level
+- Accessibility: `aria-label` on icon buttons, `aria-hidden="true"` on decorative SVGs, `type="button"` on non-submit buttons
+- Null-safe: `value ?? fallback`, guard clauses for early returns
 
-### Accessibility
-- `aria-label` on icon buttons
-- `aria-hidden="true"` on decorative SVGs
-- `type="button"` on non-submit buttons
+## Tests
 
-### Error Handling
-- Null-safe patterns: `value ?? fallback`
-- Guard clauses for early returns
-- Validation errors displayed in dedicated components
+- Prioritize unit tests over integration/e2e; test functionality, not implementation
+- Always use the Object Mother pattern for creating test/mock data (see `tests/helpers/`)
+- Mock dependencies to isolate the unit under test
+- Prefer mocking over other isolation methods
+- Test files mirror source structure: `tests/unit/`, `tests/integration/`, `tests/e2e/`
+- Integration tests use `renderWithProviders` from `tests/helpers/renderWithProviders.tsx`
+- Mock services via `createMockServices` from `tests/helpers/mockServices.ts`
 
-### Tests
-- Prioritize a good base of unitary Tests
-- Test always the functionality, not the implementation
-- Prioritize mocking to any other methods
-- Use always object mother pattern
+## TOON Format
 
-## Notes
+TOON is a compact, self-documenting text format for AI consumption. Exported via `ToonFormatter`, parsed back via `ToonParser`. Structure:
 
-- React Compiler is enabled via Babel plugin - components are automatically optimized
+```
+# TOON — Terse Object-Oriented Notation (self-documenting header)
+title: ...
+project{name,description,stack,conventions}: ...
+actors[N]{id,name,description}: ...
+entities[N]{id,name,type,description}: ...
+  values[N]: ...              (enum entities only)
+  attributes[N]{...}: ...
+  methods[N]{...}: ...
+relationships[N]{id,type,sourceId,targetId,label,sourceCardinality,targetCardinality}: ...
+endpoints[N]{id,method,path,summary,auth,useCaseRef}: ...
+  requestBody{entityRef,fields}: ...
+  response{entityRef,fields}: ...
+rules[N]{id,entityRef,field,type,description}: ...
+useCases[N]{id,name,entityRef,methodRef,description,actorRef}: ...
+  preconditions[N]: ...
+  postconditions[N]: ...
+  scenarios[N]{name}: ...
+```
+
+Import supports: JSON, TOON, Mermaid, PlantUML (paste or file upload).
+
+## Canvas Features
+
+- **Entity search**: Search overlay (magnifying glass icon) filters entities by name, keyboard navigable (arrow keys + Enter), zooms/pans to selected entity with 2-second highlight pulse
+- **Hover highlighting**: Hovering an entity dims all unrelated entities and relationships (0.2s opacity transition)
+- **Cardinality labels**: Relationships display optional multiplicity labels (`1`, `0..1`, `1..*`, `*`, `0..*`) near their endpoints
+- **SVG export**: `SvgExporter` clones the SVG DOM, inlines computed styles, and serializes for download
+- **Mermaid export**: `MermaidExporter` generates Mermaid `classDiagram` syntax from the JSON model (entity stereotypes, relationship arrows, cardinality)
+
+## Quick-Add Forms
+
+Toolbar provides `+ Entity`, `+ Relationship`, `+ Use Case`, `+ Endpoint` buttons that open modal dialogs. Each form generates a JSON snippet that is appended to the appropriate array in the editor. JSON remains the source of truth — forms are convenience helpers.
+
+- `+ Relationship` disabled when < 2 entities exist
+- `+ Use Case` disabled when no entities exist
+- All modals use `forwardRef<HTMLDialogElement>` + native `<dialog>` element
+- Handlers in `App.tsx`: parse current JSON → append item → re-stringify

@@ -46,6 +46,11 @@
   align-items: center;
 }
 
+.vimActive {
+  background: var(--bg-button-hover);
+  color: var(--emerald);
+}
+
 .prettifyButton {
   padding: var(--button-small-padding-y) var(--button-small-padding-x);
   font-family: var(--font-mono);
@@ -61,4 +66,3 @@
 .prettifyButton:hover {
   background: var(--bg-button-hover);
 }
-

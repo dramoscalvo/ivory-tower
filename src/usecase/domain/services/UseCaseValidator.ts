@@ -15,7 +15,11 @@ function getMethodNames(entity: Entity): string[] {
   return names;
 }
 
-export function validateUseCases(useCases: UseCase[], entities: Entity[]): ValidationError[] {
+export function validateUseCases(
+  useCases: UseCase[],
+  entities: Entity[],
+  actorIds?: Set<string>,
+): ValidationError[] {
   const errors: ValidationError[] = [];
   const entityMap = new Map(entities.map(e => [e.id, e]));
 
@@ -31,7 +35,10 @@ export function validateUseCases(useCases: UseCase[], entities: Entity[]): Valid
     }
 
     if (!useCase.entityRef || typeof useCase.entityRef !== 'string') {
-      errors.push({ path: `${prefix}.entityRef`, message: 'Use case must have a string entityRef' });
+      errors.push({
+        path: `${prefix}.entityRef`,
+        message: 'Use case must have a string entityRef',
+      });
     } else {
       const entity = entityMap.get(useCase.entityRef);
       if (!entity) {
@@ -47,6 +54,56 @@ export function validateUseCases(useCases: UseCase[], entities: Entity[]): Valid
             message: `Method "${useCase.methodRef}" not found in entity "${useCase.entityRef}"`,
           });
         }
+      }
+    }
+
+    if (useCase.actorRef !== undefined) {
+      if (typeof useCase.actorRef !== 'string') {
+        errors.push({
+          path: `${prefix}.actorRef`,
+          message: 'actorRef must be a string',
+        });
+      } else if (actorIds && actorIds.size > 0 && !actorIds.has(useCase.actorRef)) {
+        errors.push({
+          path: `${prefix}.actorRef`,
+          message: `Actor "${useCase.actorRef}" not found`,
+        });
+      }
+    }
+
+    if (useCase.preconditions !== undefined) {
+      if (!Array.isArray(useCase.preconditions)) {
+        errors.push({
+          path: `${prefix}.preconditions`,
+          message: 'Preconditions must be an array of strings',
+        });
+      } else {
+        useCase.preconditions.forEach((condition, i) => {
+          if (typeof condition !== 'string' || condition.trim() === '') {
+            errors.push({
+              path: `${prefix}.preconditions[${i}]`,
+              message: 'Precondition must be a non-empty string',
+            });
+          }
+        });
+      }
+    }
+
+    if (useCase.postconditions !== undefined) {
+      if (!Array.isArray(useCase.postconditions)) {
+        errors.push({
+          path: `${prefix}.postconditions`,
+          message: 'Postconditions must be an array of strings',
+        });
+      } else {
+        useCase.postconditions.forEach((condition, i) => {
+          if (typeof condition !== 'string' || condition.trim() === '') {
+            errors.push({
+              path: `${prefix}.postconditions[${i}]`,
+              message: 'Postcondition must be a non-empty string',
+            });
+          }
+        });
       }
     }
 

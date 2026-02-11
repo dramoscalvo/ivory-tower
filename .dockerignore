@@ -1,0 +1,9 @@
+node_modules
+dist
+dist-ssr
+tests
+test-results
+playwright-report
+.git
+.claude
+*.log

@@ -101,13 +101,18 @@ export function calculateHierarchicalLayout(diagram: UMLDiagram): DiagramLayout 
       const barycenters = new Map<string, number>();
       for (const entityId of currentEntities) {
         const connectedInPrev: number[] = [];
-        const relatedIds = isTopDown ? (parents.get(entityId) ?? []) : (children.get(entityId) ?? []);
+        const relatedIds = isTopDown
+          ? (parents.get(entityId) ?? [])
+          : (children.get(entityId) ?? []);
         for (const relId of relatedIds) {
           const idx = prevEntities.indexOf(relId);
           if (idx !== -1) connectedInPrev.push(idx);
         }
         if (connectedInPrev.length > 0) {
-          barycenters.set(entityId, connectedInPrev.reduce((a, b) => a + b, 0) / connectedInPrev.length);
+          barycenters.set(
+            entityId,
+            connectedInPrev.reduce((a, b) => a + b, 0) / connectedInPrev.length,
+          );
         } else {
           barycenters.set(entityId, currentEntities.indexOf(entityId));
         }

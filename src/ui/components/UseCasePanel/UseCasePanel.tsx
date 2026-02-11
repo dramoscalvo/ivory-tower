@@ -1,15 +1,18 @@
 import { UseCaseCard } from './UseCaseCard';
 import type { UseCase } from '../../../usecase/domain/models/UseCase';
 import type { Entity } from '../../../diagram/domain/models/Entity';
+import type { Actor } from '../../../diagram/domain/models/Actor';
 import styles from './UseCasePanel.module.css';
 
 interface UseCasePanelProps {
   useCases: UseCase[];
   entities: Entity[];
+  actors?: Actor[];
 }
 
-export function UseCasePanel({ useCases, entities }: UseCasePanelProps) {
+export function UseCasePanel({ useCases, entities, actors }: UseCasePanelProps) {
   const entityMap = new Map(entities.map(e => [e.id, e]));
+  const actorMap = new Map((actors ?? []).map(a => [a.id, a]));
 
   if (useCases.length === 0) {
     return (
@@ -17,7 +20,8 @@ export function UseCasePanel({ useCases, entities }: UseCasePanelProps) {
         <div className={styles.emptyState}>
           <p className={styles.emptyTitle}>No use cases defined</p>
           <p className={styles.emptyDescription}>
-            Add a <code>useCases</code> array to your JSON to define Gherkin-style test specifications.
+            Add a <code>useCases</code> array to your JSON to define Gherkin-style test
+            specifications.
           </p>
         </div>
       </div>
@@ -46,6 +50,7 @@ export function UseCasePanel({ useCases, entities }: UseCasePanelProps) {
                 key={useCase.id}
                 useCase={useCase}
                 entity={entity}
+                actor={useCase.actorRef ? actorMap.get(useCase.actorRef) : undefined}
               />
             ))}
           </section>

@@ -87,7 +87,7 @@ function calculateEntitySize(entity: Entity): Size {
 
 function findConnectionPoints(
   sourceLayout: EntityLayout,
-  targetLayout: EntityLayout
+  targetLayout: EntityLayout,
 ): { source: ConnectionPoint; target: ConnectionPoint } {
   const sourceCenter = {
     x: sourceLayout.position.x + sourceLayout.size.width / 2,

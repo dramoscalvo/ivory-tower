@@ -3,22 +3,46 @@ import { EditorLayout } from '../EditorLayout/EditorLayout';
 import { JsonEditor } from '../JsonEditor/JsonEditor';
 import { UmlCanvas } from '../UmlCanvas/UmlCanvas';
 import { UseCasePanel } from '../UseCasePanel';
+import { CoveragePanel } from '../CoveragePanel/CoveragePanel';
 import { Toolbar } from '../Toolbar/Toolbar';
 import { useServices } from '../../context/useServices';
 import { useTheme } from '../../hooks/useTheme';
 import { useHistory } from '../../hooks/useHistory';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 import { useUrlSharing } from '../../hooks/useUrlSharing';
+import { exportSvgFromElement, getSvgFilename } from '../../../export/domain/services/SvgExporter';
+import { downloadFile } from '../../../export/infrastructure/FileDownloader';
 import { findEntityLine } from '../../../diagram/domain/services/jsonLineMapper';
 import { buildPathLineMap } from '../../../diagram/domain/services/errorLineMapper';
+import { validateCompleteness } from '../../../diagram/domain/services/CompletenessValidator';
 import type { DiagramLayout } from '../../../diagram/domain/services/LayoutCalculator';
 import type { ValidationError } from '../../../diagram/domain/services/DiagramValidator';
+import type { CompletenessWarning } from '../../../diagram/domain/services/CompletenessValidator';
+import type { Actor } from '../../../diagram/domain/models/Actor';
 import type { FontSize, JsonEditorHandle } from '../JsonEditor/JsonEditor';
 import type { UmlCanvasHandle } from '../UmlCanvas/UmlCanvas';
 import styles from './App.module.css';
 
 const EXAMPLE_ARCHITECTURE_JSON = `{
   "title": "Example System",
+  "project": {
+    "name": "Task Manager",
+    "description": "A collaborative task management system for teams",
+    "stack": {
+      "language": "TypeScript",
+      "framework": "Express",
+      "database": "PostgreSQL",
+      "testing": "Vitest"
+    },
+    "conventions": {
+      "architecture": "hexagonal",
+      "api": "REST"
+    }
+  },
+  "actors": [
+    { "id": "end-user", "name": "End User", "description": "Registered user of the platform" },
+    { "id": "admin", "name": "Admin", "description": "System administrator" }
+  ],
   "entities": [
     {
       "id": "user",
@@ -33,6 +57,13 @@ const EXAMPLE_ARCHITECTURE_JSON = `{
         { "name": "getName", "parameters": [], "returnType": { "name": "string" } },
         { "name": "updateEmail", "parameters": [{ "name": "newEmail", "type": { "name": "string" } }], "returnType": { "name": "void" } }
       ]
+    },
+    {
+      "id": "user-role",
+      "name": "UserRole",
+      "type": "enum",
+      "description": "Available roles for users in the system.",
+      "values": ["ADMIN", "MEMBER", "VIEWER", "GUEST"]
     },
     {
       "id": "utils",
@@ -56,7 +87,8 @@ const EXAMPLE_ARCHITECTURE_JSON = `{
   ],
   "relationships": [
     { "id": "r1", "type": "dependency", "sourceId": "user", "targetId": "utils", "label": "uses" },
-    { "id": "r2", "type": "implementation", "sourceId": "user", "targetId": "iauth" }
+    { "id": "r2", "type": "implementation", "sourceId": "user", "targetId": "iauth" },
+    { "id": "r3", "type": "association", "sourceId": "user", "targetId": "user-role", "label": "has" }
   ]
 }`;
 
@@ -66,6 +98,9 @@ const EXAMPLE_USECASES_JSON = `[
     "name": "Email Management",
     "entityRef": "user",
     "methodRef": "updateEmail",
+    "actorRef": "end-user",
+    "preconditions": ["User is authenticated", "User has verified their current email"],
+    "postconditions": ["Email is updated in the database", "Confirmation email is sent"],
     "scenarios": [
       {
         "name": "Update email successfully",
@@ -91,7 +126,9 @@ const EXAMPLE_USECASES_JSON = `[
     "name": "User Authentication",
     "entityRef": "iauth",
     "methodRef": "authenticate",
+    "actorRef": "end-user",
     "description": "Tests for the user authentication flow",
+    "preconditions": ["User has a registered account"],
     "scenarios": [
       {
         "name": "Authenticate with valid token",
@@ -117,6 +154,7 @@ const EXAMPLE_USECASES_JSON = `[
 const ARCH_STORAGE_KEY = 'uml-architecture-json';
 const USECASES_STORAGE_KEY = 'uml-usecases-json';
 const FONT_SIZE_KEY = 'editor-font-size';
+const VIM_MODE_KEY = 'editor-vim-mode';
 
 const FONT_SIZES: FontSize[] = ['xs', 'sm', 'base', 'md', 'lg'];
 
@@ -125,7 +163,7 @@ function isValidFontSize(value: string | null): value is FontSize {
 }
 
 export function App() {
-  const { diagramService } = useServices();
+  const { diagramService, exportService } = useServices();
   const { theme, toggleTheme } = useTheme();
 
   // Editor refs
@@ -135,11 +173,9 @@ export function App() {
 
   // History-backed JSON states
   const archHistory = useHistory(
-    localStorage.getItem(ARCH_STORAGE_KEY) ?? EXAMPLE_ARCHITECTURE_JSON
+    localStorage.getItem(ARCH_STORAGE_KEY) ?? EXAMPLE_ARCHITECTURE_JSON,
   );
-  const ucHistory = useHistory(
-    localStorage.getItem(USECASES_STORAGE_KEY) ?? EXAMPLE_USECASES_JSON
-  );
+  const ucHistory = useHistory(localStorage.getItem(USECASES_STORAGE_KEY) ?? EXAMPLE_USECASES_JSON);
 
   const architectureJson = archHistory.value;
   const useCasesJson = ucHistory.value;
@@ -149,6 +185,16 @@ export function App() {
     const stored = localStorage.getItem(FONT_SIZE_KEY);
     return isValidFontSize(stored) ? stored : 'base';
   });
+
+  // Vim mode state
+  const [vimMode, setVimMode] = useState(() =>
+    localStorage.getItem(VIM_MODE_KEY) === 'true',
+  );
+
+  const handleVimModeChange = (enabled: boolean) => {
+    setVimMode(enabled);
+    localStorage.setItem(VIM_MODE_KEY, String(enabled));
+  };
 
   const [activeTab, setActiveTab] = useState('architecture');
 
@@ -203,8 +249,10 @@ export function App() {
   let mergedJson: string | null = null;
   let entities: DiagramLayout['diagram']['entities'] = [];
   let useCases: NonNullable<DiagramLayout['diagram']['useCases']> = [];
+  let actors: Actor[] = [];
   let archValidationErrors: ValidationError[] = [];
   let useCasesValidationErrors: ValidationError[] = [];
+  let completenessWarnings: CompletenessWarning[] = [];
 
   if (!archParseError && !useCasesParseError) {
     try {
@@ -218,13 +266,15 @@ export function App() {
         mergedJson = mergedJsonStr;
         entities = result.layout.diagram.entities;
         useCases = result.layout.diagram.useCases ?? [];
+        actors = result.layout.diagram.actors ?? [];
+        completenessWarnings = validateCompleteness(result.layout.diagram);
       } else {
         mergedJson = mergedJsonStr;
         archValidationErrors = (result.validationErrors ?? []).filter(
-          e => !e.path.startsWith('useCases')
+          e => !e.path.startsWith('useCases'),
         );
-        useCasesValidationErrors = (result.validationErrors ?? []).filter(
-          e => e.path.startsWith('useCases')
+        useCasesValidationErrors = (result.validationErrors ?? []).filter(e =>
+          e.path.startsWith('useCases'),
         );
       }
     } catch {
@@ -254,6 +304,52 @@ export function App() {
 
   const handleImport = (json: string) => {
     handleArchitectureJsonChange(json, true);
+  };
+
+  const handleAddEntity = (entityJson: string) => {
+    try {
+      const arch = JSON.parse(architectureJson);
+      const entity = JSON.parse(entityJson);
+      arch.entities = [...(arch.entities ?? []), entity];
+      handleArchitectureJsonChange(JSON.stringify(arch, null, 2), true);
+    } catch {
+      // parse failed
+    }
+  };
+
+  const handleAddRelationship = (relJson: string) => {
+    try {
+      const arch = JSON.parse(architectureJson);
+      const rel = JSON.parse(relJson);
+      arch.relationships = [...(arch.relationships ?? []), rel];
+      handleArchitectureJsonChange(JSON.stringify(arch, null, 2), true);
+    } catch {
+      // parse failed
+    }
+  };
+
+  const handleAddUseCase = (ucJson: string) => {
+    try {
+      const ucArray = JSON.parse(useCasesJson);
+      const uc = JSON.parse(ucJson);
+      if (Array.isArray(ucArray)) {
+        ucArray.push(uc);
+        handleUseCasesJsonChange(JSON.stringify(ucArray, null, 2), true);
+      }
+    } catch {
+      // parse failed
+    }
+  };
+
+  const handleAddEndpoint = (epJson: string) => {
+    try {
+      const arch = JSON.parse(architectureJson);
+      const ep = JSON.parse(epJson);
+      arch.endpoints = [...(arch.endpoints ?? []), ep];
+      handleArchitectureJsonChange(JSON.stringify(arch, null, 2), true);
+    } catch {
+      // parse failed
+    }
   };
 
   const handleEntityClick = (entityId: string) => {
@@ -334,6 +430,21 @@ export function App() {
     }
   };
 
+  const handleExportSvg = () => {
+    const svgEl = canvasRef.current?.getSvgElement();
+    if (!svgEl || !layout) return;
+    const svgString = exportSvgFromElement(svgEl);
+    downloadFile(svgString, getSvgFilename(layout.diagram.title), 'image/svg+xml');
+  };
+
+  const handleExportToon = () => {
+    if (!mergedJson || !layout) return;
+    const diagram = diagramService.getDiagram(mergedJson);
+    if (diagram) {
+      exportService.exportAsToon(diagram);
+    }
+  };
+
   const handleFitToView = () => {
     canvasRef.current?.fitToView();
   };
@@ -343,7 +454,7 @@ export function App() {
     onUndo: handleUndo,
     onRedo: handleRedo,
     onPrettify: handlePrettify,
-    onExport: () => {},
+    onExport: handleExportToon,
     onFitToView: handleFitToView,
   });
 
@@ -360,6 +471,14 @@ export function App() {
             onShare={handleShare}
             shareStatus={shareStatus}
             onImport={handleImport}
+            onExportSvg={handleExportSvg}
+            entities={entities}
+            actors={actors}
+            useCases={useCases}
+            onAddEntity={handleAddEntity}
+            onAddRelationship={handleAddRelationship}
+            onAddUseCase={handleAddUseCase}
+            onAddEndpoint={handleAddEndpoint}
           />
         }
         architectureEditor={
@@ -371,6 +490,8 @@ export function App() {
             validationErrors={archValidationErrors}
             fontSize={fontSize}
             onFontSizeChange={handleFontSizeChange}
+            vimMode={vimMode}
+            onVimModeChange={handleVimModeChange}
             canUndo={archHistory.canUndo}
             canRedo={archHistory.canRedo}
             onUndo={archHistory.undo}
@@ -388,6 +509,8 @@ export function App() {
             validationErrors={useCasesValidationErrors}
             fontSize={fontSize}
             onFontSizeChange={handleFontSizeChange}
+            vimMode={vimMode}
+            onVimModeChange={handleVimModeChange}
             canUndo={ucHistory.canUndo}
             canRedo={ucHistory.canRedo}
             onUndo={ucHistory.undo}
@@ -396,14 +519,9 @@ export function App() {
             onErrorClick={handleUcErrorClick}
           />
         }
-        canvas={
-          <UmlCanvas
-            ref={canvasRef}
-            layout={layout}
-            onEntityClick={handleEntityClick}
-          />
-        }
-        useCasePanel={<UseCasePanel useCases={useCases} entities={entities} />}
+        canvas={<UmlCanvas ref={canvasRef} layout={layout} onEntityClick={handleEntityClick} />}
+        useCasePanel={<UseCasePanel useCases={useCases} entities={entities} actors={actors} />}
+        coveragePanel={<CoveragePanel diagram={layout?.diagram ?? null} warnings={completenessWarnings} />}
         activeTab={activeTab}
         onTabChange={setActiveTab}
       />

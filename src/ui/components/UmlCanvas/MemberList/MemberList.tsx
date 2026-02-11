@@ -1,7 +1,14 @@
-import type { Attribute, Method, Function as Fn, TypeDefinition, Visibility } from '../../../../diagram/domain/models/Entity';
+import type {
+  Attribute,
+  Method,
+  Function as Fn,
+  TypeDefinition,
+  Visibility,
+} from '../../../../diagram/domain/models/Entity';
 import styles from './MemberList.module.css';
 
 interface MemberListProps {
+  values?: string[];
   attributes?: Attribute[];
   methods?: Method[];
   functions?: Fn[];
@@ -27,18 +34,42 @@ function visibilitySymbol(visibility?: Visibility): string {
 
 function formatType(type: { name: string; generics?: { name: string }[] }): string {
   if (type.generics && type.generics.length > 0) {
-    return `${type.name}<${type.generics.map((g) => g.name).join(', ')}>`;
+    return `${type.name}<${type.generics.map(g => g.name).join(', ')}>`;
   }
   return type.name;
 }
 
-export function MemberList({ attributes, methods, functions, types, startY, width }: MemberListProps) {
+export function MemberList({
+  values,
+  attributes,
+  methods,
+  functions,
+  types,
+  startY,
+  width,
+}: MemberListProps) {
   const items: React.ReactNode[] = [];
   let y = startY;
 
+  if (values && values.length > 0) {
+    items.push(
+      <line key="values-sep" x1={0} y1={y} x2={width} y2={y} className={styles.separator} />,
+    );
+    y += 4;
+
+    for (const value of values) {
+      items.push(
+        <text key={`value-${value}`} x={PADDING} y={y + 16} className={styles.member}>
+          {value}
+        </text>,
+      );
+      y += MEMBER_HEIGHT;
+    }
+  }
+
   if (attributes && attributes.length > 0) {
     items.push(
-      <line key="attr-sep" x1={0} y1={y} x2={width} y2={y} className={styles.separator} />
+      <line key="attr-sep" x1={0} y1={y} x2={width} y2={y} className={styles.separator} />,
     );
     y += 4;
 
@@ -47,7 +78,7 @@ export function MemberList({ attributes, methods, functions, types, startY, widt
       items.push(
         <text key={`attr-${attr.name}`} x={PADDING} y={y + 16} className={styles.member}>
           {text}
-        </text>
+        </text>,
       );
       y += MEMBER_HEIGHT;
     }
@@ -55,36 +86,34 @@ export function MemberList({ attributes, methods, functions, types, startY, widt
 
   if (methods && methods.length > 0) {
     items.push(
-      <line key="method-sep" x1={0} y1={y} x2={width} y2={y} className={styles.separator} />
+      <line key="method-sep" x1={0} y1={y} x2={width} y2={y} className={styles.separator} />,
     );
     y += 4;
 
     for (const method of methods) {
-      const params = method.parameters.map((p) => `${p.name}: ${formatType(p.type)}`).join(', ');
+      const params = method.parameters.map(p => `${p.name}: ${formatType(p.type)}`).join(', ');
       const text = `${visibilitySymbol(method.visibility)} ${method.name}(${params}): ${formatType(method.returnType)}`;
       items.push(
         <text key={`method-${method.name}`} x={PADDING} y={y + 16} className={styles.member}>
           {text}
-        </text>
+        </text>,
       );
       y += MEMBER_HEIGHT;
     }
   }
 
   if (functions && functions.length > 0) {
-    items.push(
-      <line key="fn-sep" x1={0} y1={y} x2={width} y2={y} className={styles.separator} />
-    );
+    items.push(<line key="fn-sep" x1={0} y1={y} x2={width} y2={y} className={styles.separator} />);
     y += 4;
 
     for (const fn of functions) {
-      const params = fn.parameters.map((p) => `${p.name}: ${formatType(p.type)}`).join(', ');
+      const params = fn.parameters.map(p => `${p.name}: ${formatType(p.type)}`).join(', ');
       const vis = fn.isExported ? '+' : '-';
       const text = `${vis} ${fn.name}(${params}): ${formatType(fn.returnType)}`;
       items.push(
         <text key={`fn-${fn.name}`} x={PADDING} y={y + 16} className={styles.member}>
           {text}
-        </text>
+        </text>,
       );
       y += MEMBER_HEIGHT;
     }
@@ -92,7 +121,7 @@ export function MemberList({ attributes, methods, functions, types, startY, widt
 
   if (types && types.length > 0) {
     items.push(
-      <line key="type-sep" x1={0} y1={y} x2={width} y2={y} className={styles.separator} />
+      <line key="type-sep" x1={0} y1={y} x2={width} y2={y} className={styles.separator} />,
     );
     y += 4;
 
@@ -102,7 +131,7 @@ export function MemberList({ attributes, methods, functions, types, startY, widt
       items.push(
         <text key={`type-${t.name}`} x={PADDING} y={y + 16} className={styles.member}>
           {text}
-        </text>
+        </text>,
       );
       y += MEMBER_HEIGHT;
     }

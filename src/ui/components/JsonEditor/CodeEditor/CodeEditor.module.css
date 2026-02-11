@@ -4,59 +4,6 @@
   background: var(--bg-input);
 }
 
-.editor {
-  height: 100%;
-  font-family: var(--font-mono);
-  background: var(--bg-input);
-  color: var(--text-code);
-  caret-color: var(--text-primary);
-}
-
-/* Prism token colors that adapt to theme */
-.editor :global(.token.property) {
-  color: var(--azure);
-}
-
-.editor :global(.token.string) {
-  color: var(--emerald);
-}
-
-.editor :global(.token.number) {
-  color: var(--violet);
-}
-
-.editor :global(.token.boolean) {
-  color: var(--amber);
-}
-
-.editor :global(.token.null) {
-  color: var(--gray);
-}
-
-.editor :global(.token.punctuation) {
-  color: var(--silver);
-}
-
-.editor :global(.token.operator) {
-  color: var(--silver);
-}
-
-/* Line number gutter */
-.editor :global(.pce-line-number) {
-  color: var(--text-muted);
-}
-
-/* Selection */
-.editor :global(.pce-selection) {
-  background: rgba(74, 144, 217, 0.2);
-}
-
-/* Bracket matching */
-.editor :global(.bracket-pair-highlight) {
-  outline: 1px solid var(--azure);
-  border-radius: 2px;
-}
-
 /* Error line highlight */
 .errorLine {
   background: rgba(233, 69, 96, 0.15);
