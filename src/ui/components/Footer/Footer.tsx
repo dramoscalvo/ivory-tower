@@ -1,4 +1,5 @@
 import { useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { AboutModal } from './AboutModal';
 import { ShortcutsHelp } from '../Toolbar/ShortcutsHelp';
 import { LearnModal } from '../Toolbar/LearnModal';
@@ -11,9 +12,13 @@ interface FooterProps {
 }
 
 export function Footer({ theme, onToggleTheme }: FooterProps) {
+  const { t, i18n } = useTranslation();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const shortcutsRef = useRef<HTMLDialogElement>(null);
   const learnRef = useRef<HTMLDialogElement>(null);
+  const resolvedLocale = i18n.resolvedLanguage ?? i18n.language;
+  const currentLocale = resolvedLocale?.startsWith('es') ? 'es' : 'en';
+  const nextLocale = currentLocale === 'en' ? 'es' : 'en';
 
   const openAbout = () => {
     dialogRef.current?.showModal();
@@ -28,9 +33,9 @@ export function Footer({ theme, onToggleTheme }: FooterProps) {
       <button
         className={styles.icon}
         onClick={onToggleTheme}
-        title={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+        title={theme === 'dark' ? t('footer.themeToLight') : t('footer.themeToDark')}
         type="button"
-        aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+        aria-label={theme === 'dark' ? t('footer.themeToLight') : t('footer.themeToDark')}
       >
         {theme === 'dark' ? (
           <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -42,12 +47,22 @@ export function Footer({ theme, onToggleTheme }: FooterProps) {
           </svg>
         )}
       </button>
+      <span className={styles.languageLabel}>{t('footer.languageLabel')}</span>
+      <button
+        className={styles.languageButton}
+        onClick={() => void i18n.changeLanguage(nextLocale)}
+        title={t('footer.languageToggle', { locale: nextLocale.toUpperCase() })}
+        type="button"
+        aria-label={t('footer.languageToggle', { locale: nextLocale.toUpperCase() })}
+      >
+        {currentLocale.toUpperCase()}
+      </button>
       <button
         className={styles.icon}
         onClick={() => learnRef.current?.showModal()}
-        title="Learning resources"
+        title={t('footer.learningResources')}
         type="button"
-        aria-label="Learning resources"
+        aria-label={t('footer.learningResources')}
       >
         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
           <path d="M12 11.55C9.64 9.35 6.48 8 3 8v11c3.48 0 6.64 1.35 9 3.55 2.36-2.19 5.52-3.55 9-3.55V8c-3.48 0-6.64 1.35-9 3.55zM12 8c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3z" />
@@ -56,16 +71,22 @@ export function Footer({ theme, onToggleTheme }: FooterProps) {
       <button
         className={styles.icon}
         onClick={() => shortcutsRef.current?.showModal()}
-        title="Keyboard shortcuts"
+        title={t('footer.keyboardShortcuts')}
         type="button"
-        aria-label="Keyboard shortcuts"
+        aria-label={t('footer.keyboardShortcuts')}
       >
         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
           <path d="M20 5H4c-1.1 0-1.99.9-1.99 2L2 17c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm-9 3h2v2h-2V8zm0 3h2v2h-2v-2zM8 8h2v2H8V8zm0 3h2v2H8v-2zm-1 2H5v-2h2v2zm0-3H5V8h2v2zm9 7H8v-2h8v2zm0-4h-2v-2h2v2zm0-3h-2V8h2v2zm3 3h-2v-2h2v2zm0-3h-2V8h2v2z" />
         </svg>
       </button>
       <div className={styles.separator} />
-      <button type="button" className={styles.icon} onClick={openAbout} title="About" aria-label="About">
+      <button
+        type="button"
+        className={styles.icon}
+        onClick={openAbout}
+        title={t('footer.about')}
+        aria-label={t('footer.about')}
+      >
         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
           <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" />
         </svg>
@@ -75,8 +96,8 @@ export function Footer({ theme, onToggleTheme }: FooterProps) {
         target="_blank"
         rel="noopener noreferrer"
         className={styles.icon}
-        title="GitHub"
-        aria-label="GitHub"
+        title={t('footer.github')}
+        aria-label={t('footer.github')}
       >
         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
           <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />

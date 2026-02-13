@@ -1,4 +1,4 @@
-# CLAUDE.md
+# AGENTS.md
 
 ## Product Vision
 
@@ -33,15 +33,28 @@ pnpm test:e2e        # Playwright end-to-end tests
 
 ### Verification
 
+Before running verification, always run this preflight:
+
+```bash
+node -v && pnpm -v
+```
+
+If the active Node/pnpm versions do not satisfy the constraints defined in `package.json` (`engines.node`, `engines.pnpm`, and `packageManager`), stop immediately and report an environment mismatch instead of continuing.
+
 When verifying changes, run **all** test suites — unit/integration AND E2E:
 
 ```bash
 pnpm build && pnpm test && pnpm test:e2e
 ```
 
+Always run full verification for this project.
+
 ## Architecture
 
-Three bounded contexts, each following domain-driven structure (`domain/`, `application/`, `infrastructure/`):
+Three bounded contexts:
+
+- `src/diagram/` and `src/export/` follow domain-driven structure (`domain/`, `application/`, `infrastructure/`)
+- `src/usecase/` currently has `domain/` (no `application/` or `infrastructure/` yet)
 
 - **`src/diagram/`** — UML diagram models, validation, layout, parsing
 - **`src/usecase/`** — Use case models and validation
@@ -59,16 +72,16 @@ Entry point: `src/main.tsx` renders `<App />` into `#root`.
 
 The specification document has these top-level keys:
 
-| Key | Required | Description |
-|---|---|---|
-| `title` | Yes | Diagram title |
-| `project` | No | Project metadata: `name`, `description`, `stack` (key-value), `conventions` (key-value) |
-| `actors` | No | Array of `{ id, name, description? }` — who interacts with the system |
-| `entities` | Yes | Array of entities: classes, interfaces, modules, types, abstract-classes, **enums** |
-| `relationships` | Yes | Array of relationships between entities (inheritance, implementation, composition, etc.) |
-| `endpoints` | No | Array of API endpoints: `{ id, method, path, summary?, requestBody?, response?, auth?, useCaseRef? }` |
-| `rules` | No | Array of business rules: `{ id, entityRef, field?, type, description }` |
-| `useCases` | No | Array of Gherkin-style use cases with `entityRef`, `methodRef?`, `actorRef?`, `preconditions?`, `postconditions?`, and `scenarios` |
+| Key             | Required | Description                                                                                                                        |
+| --------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `title`         | Yes      | Diagram title                                                                                                                      |
+| `project`       | No       | Project metadata: `name`, `description`, `stack` (key-value), `conventions` (key-value)                                            |
+| `actors`        | No       | Array of `{ id, name, description? }` — who interacts with the system                                                              |
+| `entities`      | Yes      | Array of entities: classes, interfaces, modules, types, abstract-classes, **enums**                                                |
+| `relationships` | Yes      | Array of relationships between entities (inheritance, implementation, composition, etc.)                                           |
+| `endpoints`     | No       | Array of API endpoints: `{ id, method, path, summary?, requestBody?, response?, auth?, useCaseRef? }`                              |
+| `rules`         | No       | Array of business rules: `{ id, entityRef, field?, type, description }`                                                            |
+| `useCases`      | No       | Array of Gherkin-style use cases with `entityRef`, `methodRef?`, `actorRef?`, `preconditions?`, `postconditions?`, and `scenarios` |
 
 ### Entity types
 
@@ -111,6 +124,7 @@ The specification document has these top-level keys:
 - Sub-components in nested directories (e.g., `UmlCanvas/EntityBox/`)
 - Custom hooks alongside components (e.g., `Toolbar/useExport.ts`)
 - Quick-add form modals in `Toolbar/` (AddEntityModal, AddRelationshipModal, AddUseCaseModal, AddEndpointModal) — shared CSS in `QuickAddModal.module.css`
+- Never use barrel files (`index.ts` / `index.tsx`) for re-exports.
 - No barrel exports. No default exports. Named exports only.
 
 ### Component Structure
@@ -148,22 +162,23 @@ export const Modal = forwardRef<HTMLDialogElement, ModalProps>(
 
 All values must come from CSS variables defined in `src/index.css`. Never hardcode these:
 
-| Category | Tokens | Example |
-|---|---|---|
-| **Spacing** | `--space-xs` (0.25rem) through `--space-3xl` (3rem) | `padding: var(--space-md)` |
-| **Border radius** | `--radius-sm` (0.25rem), `--radius-md` (0.5rem), `--radius-lg` (0.75rem) | `border-radius: var(--radius-sm)` |
-| **Shadows** | `--shadow-sm`, `--shadow-md`, `--shadow-lg` | `box-shadow: var(--shadow-md)` |
-| **Font sizes** | `--font-xs` (0.75rem) through `--font-xl` (1.25rem) | `font-size: var(--font-base)` |
-| **Font weights** | `--weight-normal` (400), `--weight-medium` (500), `--weight-semibold` (600), `--weight-bold` (700) | `font-weight: var(--weight-semibold)` |
-| **Z-index** | `--z-dropdown` (100), `--z-overlay` (200), `--z-modal` (300) | `z-index: var(--z-dropdown)` |
-| **Transitions** | `--transition-fast` (0.15s), `--transition-normal` (0.2s), `--transition-slow` (0.3s) | `transition: opacity var(--transition-normal)` |
-| **Opacity** | `--opacity-disabled` (0.5), `--opacity-dimmed` (0.15) | `opacity: var(--opacity-disabled)` |
-| **Dialog widths** | `--dialog-width-sm` (25rem), `--dialog-width-md` (30rem), `--dialog-width-lg` (35rem) | `max-width: var(--dialog-width-md)` |
-| **Backdrop** | `--backdrop-color` | `background: var(--backdrop-color)` |
+| Category          | Tokens                                                                                             | Example                                        |
+| ----------------- | -------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| **Spacing**       | `--space-xs` (0.25rem) through `--space-3xl` (3rem)                                                | `padding: var(--space-md)`                     |
+| **Border radius** | `--radius-sm` (0.25rem), `--radius-md` (0.5rem), `--radius-lg` (0.75rem)                           | `border-radius: var(--radius-sm)`              |
+| **Shadows**       | `--shadow-sm`, `--shadow-md`, `--shadow-lg`                                                        | `box-shadow: var(--shadow-md)`                 |
+| **Font sizes**    | `--font-xs` (0.75rem) through `--font-xl` (1.25rem)                                                | `font-size: var(--font-base)`                  |
+| **Font weights**  | `--weight-normal` (400), `--weight-medium` (500), `--weight-semibold` (600), `--weight-bold` (700) | `font-weight: var(--weight-semibold)`          |
+| **Z-index**       | `--z-dropdown` (100), `--z-overlay` (200), `--z-modal` (300)                                       | `z-index: var(--z-dropdown)`                   |
+| **Transitions**   | `--transition-fast` (0.15s), `--transition-normal` (0.2s), `--transition-slow` (0.3s)              | `transition: opacity var(--transition-normal)` |
+| **Opacity**       | `--opacity-disabled` (0.5), `--opacity-dimmed` (0.15)                                              | `opacity: var(--opacity-disabled)`             |
+| **Dialog widths** | `--dialog-width-sm` (25rem), `--dialog-width-md` (30rem), `--dialog-width-lg` (35rem)              | `max-width: var(--dialog-width-md)`            |
+| **Backdrop**      | `--backdrop-color`                                                                                 | `background: var(--backdrop-color)`            |
 
 ### Modal Dialog Pattern
 
 All dialogs must follow this pattern:
+
 - `border-radius: var(--radius-md)`
 - `max-width: var(--dialog-width-sm|md|lg)`
 - `box-shadow: var(--shadow-lg)`

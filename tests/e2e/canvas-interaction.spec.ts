@@ -1,5 +1,8 @@
 import { test, expect } from '@playwright/test';
 
+/** The canvas SVG is the one with width="100%" and height="100%". */
+const CANVAS_SVG = 'svg[width="100%"][height="100%"]';
+
 test.describe('Canvas Interaction', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
@@ -12,7 +15,7 @@ test.describe('Canvas Interaction', () => {
     await page.goto('/');
 
     // Default example has User, UserUtils, IAuthenticatable
-    const svg = page.locator('svg');
+    const svg = page.locator(CANVAS_SVG);
     // Use exact match to avoid matching UserUtils
     await expect(svg.getByText('User', { exact: true })).toBeVisible();
     await expect(svg.getByText('UserUtils', { exact: true })).toBeVisible();
@@ -21,9 +24,8 @@ test.describe('Canvas Interaction', () => {
   test('zoom controls are visible', async ({ page }) => {
     await page.goto('/');
 
-    // Find the zoom buttons by their text content
-    const zoomInButton = page.locator('button', { hasText: '+' });
-    const zoomOutButton = page.locator('button', { hasText: '-' });
+    const zoomInButton = page.locator('button[title="Zoom In"]');
+    const zoomOutButton = page.locator('button[title="Zoom Out"]');
 
     await expect(zoomInButton).toBeVisible();
     await expect(zoomOutButton).toBeVisible();
@@ -32,12 +34,10 @@ test.describe('Canvas Interaction', () => {
   test('zoom in button increases scale', async ({ page }) => {
     await page.goto('/');
 
-    // Find the zoom in button by + text
-    const zoomInButton = page.locator('button', { hasText: '+' });
+    const zoomInButton = page.locator('button[title="Zoom In"]');
     await expect(zoomInButton).toBeVisible();
 
-    // Get initial transform from SVG style
-    const svg = page.locator('svg').first();
+    const svg = page.locator(CANVAS_SVG);
 
     const getScale = async () => {
       const style = await svg.getAttribute('style');
@@ -59,11 +59,11 @@ test.describe('Canvas Interaction', () => {
     await page.goto('/');
 
     // First zoom in to have room to zoom out
-    const zoomInButton = page.locator('button', { hasText: '+' });
+    const zoomInButton = page.locator('button[title="Zoom In"]');
     await zoomInButton.click();
     await zoomInButton.click();
 
-    const svg = page.locator('svg').first();
+    const svg = page.locator(CANVAS_SVG);
 
     const getScale = async () => {
       const style = await svg.getAttribute('style');
@@ -73,8 +73,8 @@ test.describe('Canvas Interaction', () => {
 
     const scaleAfterZoomIn = await getScale();
 
-    // Find and click zoom out button (uses − character)
-    const zoomOutButton = page.locator('button', { hasText: '-' });
+    // Click zoom out
+    const zoomOutButton = page.locator('button[title="Zoom Out"]');
     await zoomOutButton.click();
 
     const scaleAfterZoomOut = await getScale();
@@ -86,7 +86,7 @@ test.describe('Canvas Interaction', () => {
 
     // The example diagram has relationships, so there should be path elements
     // with marker-end attribute (relationship arrows)
-    const svg = page.locator('svg');
+    const svg = page.locator(CANVAS_SVG);
     const relationshipPaths = svg.locator('path[marker-end]');
     await expect(relationshipPaths.first()).toBeVisible();
   });
@@ -94,7 +94,7 @@ test.describe('Canvas Interaction', () => {
   test('canvas renders entities with type indicators', async ({ page }) => {
     await page.goto('/');
 
-    const svg = page.locator('svg');
+    const svg = page.locator(CANVAS_SVG);
 
     // Check that entity names are rendered
     await expect(svg.getByText('User', { exact: true })).toBeVisible();

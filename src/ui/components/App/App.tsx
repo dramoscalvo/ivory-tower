@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { EditorLayout } from '../EditorLayout/EditorLayout';
 import { JsonEditor } from '../JsonEditor/JsonEditor';
 import { UmlCanvas } from '../UmlCanvas/UmlCanvas';
-import { UseCasePanel } from '../UseCasePanel';
+import { UseCasePanel } from '../UseCasePanel/UseCasePanel';
 import { CoveragePanel } from '../CoveragePanel/CoveragePanel';
 import { Toolbar } from '../Toolbar/Toolbar';
 import { useServices } from '../../context/useServices';

@@ -1,15 +1,7 @@
 import { forwardRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { EntityType } from '../../../diagram/domain/models/Entity';
 import styles from './QuickAddModal.module.css';
-
-const ENTITY_TYPES: { value: EntityType; label: string }[] = [
-  { value: 'class', label: 'Class' },
-  { value: 'interface', label: 'Interface' },
-  { value: 'abstract-class', label: 'Abstract Class' },
-  { value: 'module', label: 'Module' },
-  { value: 'type', label: 'Type' },
-  { value: 'enum', label: 'Enum' },
-];
 
 function toKebabCase(name: string): string {
   return name
@@ -25,9 +17,19 @@ interface AddEntityModalProps {
 
 export const AddEntityModal = forwardRef<HTMLDialogElement, AddEntityModalProps>(
   function AddEntityModal({ onClose, onAdd }, ref) {
+    const { t } = useTranslation();
     const [name, setName] = useState('');
     const [type, setType] = useState<EntityType>('class');
     const [description, setDescription] = useState('');
+
+    const entityTypes: { value: EntityType; label: string }[] = [
+      { value: 'class', label: t('addEntityModal.typeClass') },
+      { value: 'interface', label: t('addEntityModal.typeInterface') },
+      { value: 'abstract-class', label: t('addEntityModal.typeAbstractClass') },
+      { value: 'module', label: t('addEntityModal.typeModule') },
+      { value: 'type', label: t('addEntityModal.typeType') },
+      { value: 'enum', label: t('addEntityModal.typeEnum') },
+    ];
 
     const handleBackdropClick = (e: React.MouseEvent<HTMLDialogElement>) => {
       if (e.target === e.currentTarget) onClose();
@@ -66,8 +68,13 @@ export const AddEntityModal = forwardRef<HTMLDialogElement, AddEntityModalProps>
     return (
       <dialog ref={ref} className={styles.dialog} onClick={handleBackdropClick} onClose={onClose}>
         <header className={styles.header}>
-          <h2 className={styles.title}>Add Entity</h2>
-          <button type="button" className={styles.closeButton} onClick={onClose} aria-label="Close">
+          <h2 className={styles.title}>{t('addEntityModal.title')}</h2>
+          <button
+            type="button"
+            className={styles.closeButton}
+            onClick={onClose}
+            aria-label={t('addEntityModal.close')}
+          >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
             </svg>
@@ -76,37 +83,37 @@ export const AddEntityModal = forwardRef<HTMLDialogElement, AddEntityModalProps>
         <div className={styles.body}>
           <div className={styles.row}>
             <div className={styles.field}>
-              <label className={styles.label}>Name</label>
+              <label className={styles.label}>{t('addEntityModal.nameLabel')}</label>
               <input
                 className={styles.input}
                 value={name}
                 onChange={e => setName(e.target.value)}
-                placeholder="e.g. UserAccount"
+                placeholder={t('addEntityModal.namePlaceholder')}
                 autoFocus
               />
             </div>
             <div className={styles.field}>
-              <label className={styles.label}>Type</label>
+              <label className={styles.label}>{t('addEntityModal.typeLabel')}</label>
               <select
                 className={styles.select}
                 value={type}
                 onChange={e => setType(e.target.value as EntityType)}
               >
-                {ENTITY_TYPES.map(t => (
-                  <option key={t.value} value={t.value}>
-                    {t.label}
+                {entityTypes.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
                   </option>
                 ))}
               </select>
             </div>
           </div>
           <div className={styles.field}>
-            <label className={styles.label}>Description</label>
+            <label className={styles.label}>{t('addEntityModal.descriptionLabel')}</label>
             <textarea
               className={styles.textarea}
               value={description}
               onChange={e => setDescription(e.target.value)}
-              placeholder="What does this entity represent?"
+              placeholder={t('addEntityModal.descriptionPlaceholder')}
               rows={2}
             />
           </div>
@@ -117,7 +124,7 @@ export const AddEntityModal = forwardRef<HTMLDialogElement, AddEntityModalProps>
               onClick={handleSubmit}
               disabled={!name.trim()}
             >
-              Add Entity
+              {t('addEntityModal.addButton')}
             </button>
           </div>
         </div>

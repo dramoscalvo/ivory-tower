@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom/vitest';
+import { i18n } from '../../src/ui/i18n/i18n';
 
 // Node.js >=22 provides a native localStorage that lacks .clear() and conflicts
 // with jsdom's implementation. Provide a spec-compliant in-memory Storage so
@@ -75,3 +76,6 @@ if (typeof window !== 'undefined' && typeof window.matchMedia !== 'function') {
     }),
   });
 }
+
+localStorage.setItem('locale', 'en');
+void i18n.changeLanguage('en');

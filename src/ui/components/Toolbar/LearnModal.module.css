@@ -1,6 +1,6 @@
 .dialog {
   padding: 0;
-  border: 1px solid var(--border-primary);
+  border: 0.0625rem solid var(--border-primary);
   border-radius: var(--radius-md);
   background: var(--bg-toolbar);
   color: var(--text-primary);
@@ -18,7 +18,7 @@
   justify-content: space-between;
   align-items: center;
   padding: var(--space-lg);
-  border-bottom: 1px solid var(--border-primary);
+  border-bottom: 0.0625rem solid var(--border-primary);
 }
 
 .title {

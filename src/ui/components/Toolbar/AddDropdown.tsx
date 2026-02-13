@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import styles from './Dropdown.module.css';
 
 interface AddDropdownProps {
@@ -16,6 +17,7 @@ export function AddDropdown({
   onAddUseCase,
   onAddEndpoint,
 }: AddDropdownProps) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
@@ -44,17 +46,24 @@ export function AddDropdown({
         className={styles.trigger}
         onClick={() => setOpen(prev => !prev)}
         type="button"
-        aria-label="Add"
+        aria-label={t('toolbar.addAction')}
         aria-expanded={open}
       >
-        + Add
+        {t('toolbar.add')}
         <svg
           className={`${styles.chevron} ${open ? styles.chevronOpen : ''}`}
           viewBox="0 0 10 6"
           fill="currentColor"
           aria-hidden="true"
         >
-          <path d="M1 1l4 4 4-4" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+          <path
+            d="M1 1l4 4 4-4"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
         </svg>
       </button>
       {open && (
@@ -65,7 +74,7 @@ export function AddDropdown({
             type="button"
             role="menuitem"
           >
-            + Entity
+            {t('toolbar.addEntity')}
           </button>
           <button
             className={styles.menuItem}
@@ -74,7 +83,7 @@ export function AddDropdown({
             type="button"
             role="menuitem"
           >
-            + Relationship
+            {t('toolbar.addRelationship')}
           </button>
           <button
             className={styles.menuItem}
@@ -83,7 +92,7 @@ export function AddDropdown({
             type="button"
             role="menuitem"
           >
-            + Use Case
+            {t('toolbar.addUseCase')}
           </button>
           <button
             className={styles.menuItem}
@@ -91,7 +100,7 @@ export function AddDropdown({
             type="button"
             role="menuitem"
           >
-            + Endpoint
+            {t('toolbar.addEndpoint')}
           </button>
         </div>
       )}

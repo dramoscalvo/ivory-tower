@@ -1,5 +1,35 @@
 import { test, expect } from '@playwright/test';
 
+const ARCH_KEY = 'uml-architecture-json';
+const CANVAS_SVG = 'svg[width="100%"][height="100%"]';
+
+/** Paste text into the CodeMirror editor, replacing all current content. */
+async function pasteIntoEditor(page: import('@playwright/test').Page, text: string) {
+  const editor = page.locator('.cm-content');
+  await editor.click();
+  await page.keyboard.press('Control+A');
+  await editor.evaluate((el, t) => {
+    const dt = new DataTransfer();
+    dt.setData('text/plain', t);
+    el.dispatchEvent(
+      new ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true }),
+    );
+  }, text);
+}
+
+/** Set editor content via localStorage and reload. */
+async function setDiagram(page: import('@playwright/test').Page, json: string) {
+  await page.evaluate(
+    ([arch, uc]) => {
+      localStorage.setItem('uml-architecture-json', arch);
+      localStorage.setItem('uml-usecases-json', uc);
+    },
+    [json, '[]'] as const,
+  );
+  await page.reload();
+  await page.locator('.cm-editor').waitFor();
+}
+
 test.describe('Diagram Editing', () => {
   test.beforeEach(async ({ page }) => {
     // Clear localStorage before each test
@@ -11,31 +41,29 @@ test.describe('Diagram Editing', () => {
   test('loads page with example diagram', async ({ page }) => {
     await page.goto('/');
 
-    // Should have the title
-    await expect(page.getByText('UML Diagram Editor')).toBeVisible();
+    // Should have the app title
+    const matches = await page.getByText('Ivory Tower').all();
+    expect(matches.length).toBeGreaterThanOrEqual(1);
 
-    // Should have the JSON editor with example content
-    const editor = page.getByRole('textbox');
-    await expect(editor).toContainText('Example System');
+    // Should have the editor with example content
+    await expect(page.locator('.cm-content')).toContainText('Example System');
   });
 
   test('updates canvas when JSON is edited', async ({ page }) => {
     await page.goto('/');
 
     // Wait for initial render
-    await expect(page.getByRole('textbox')).toBeVisible();
+    await expect(page.locator('.cm-editor')).toBeVisible();
 
     // The canvas should render entities from the example
-    // Check for SVG content (the canvas renders entities)
-    const svg = page.locator('svg');
+    const svg = page.locator(CANVAS_SVG);
     await expect(svg).toBeVisible();
   });
 
   test('shows parse error for invalid JSON', async ({ page }) => {
     await page.goto('/');
 
-    const editor = page.getByRole('textbox');
-    await editor.fill('{ invalid json }');
+    await pasteIntoEditor(page, '{ invalid json }');
 
     // Should show parse error
     await expect(page.getByText('Parse Error:')).toBeVisible();
@@ -50,8 +78,7 @@ test.describe('Diagram Editing', () => {
       relationships: [],
     });
 
-    const editor = page.getByRole('textbox');
-    await editor.fill(invalidJson);
+    await setDiagram(page, invalidJson);
 
     // Should show validation errors (there are multiple, use first)
     await expect(page.getByText(/entities\[0\]/).first()).toBeVisible();
@@ -60,19 +87,17 @@ test.describe('Diagram Editing', () => {
   test('clears errors when valid JSON is entered', async ({ page }) => {
     await page.goto('/');
 
-    const editor = page.getByRole('textbox');
-
-    // Enter invalid JSON
-    await editor.fill('{ invalid }');
+    // Set invalid JSON via localStorage
+    await setDiagram(page, '{ invalid }');
     await expect(page.getByText('Parse Error:')).toBeVisible();
 
-    // Enter valid JSON
+    // Set valid JSON
     const validJson = JSON.stringify({
       title: 'Valid',
       entities: [],
       relationships: [],
     });
-    await editor.fill(validJson);
+    await setDiagram(page, validJson);
 
     // Error should be gone
     await expect(page.getByText('Parse Error:')).not.toBeVisible();
@@ -90,11 +115,10 @@ test.describe('Diagram Editing', () => {
       relationships: [],
     });
 
-    const editor = page.getByRole('textbox');
-    await editor.fill(diagram);
+    await setDiagram(page, diagram);
 
     // Canvas should show both entities
-    const svg = page.locator('svg');
+    const svg = page.locator(CANVAS_SVG);
     await expect(svg.getByText('User')).toBeVisible();
     await expect(svg.getByText('Admin')).toBeVisible();
   });

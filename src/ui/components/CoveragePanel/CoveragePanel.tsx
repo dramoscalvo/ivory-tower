@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import type { UMLDiagram } from '../../../diagram/domain/models/UMLDiagram';
 import type { CompletenessWarning } from '../../../diagram/domain/services/CompletenessValidator';
 import styles from './CoveragePanel.module.css';
@@ -58,34 +59,28 @@ function computeCoverage(diagram: UMLDiagram): EntityCoverage[] {
 }
 
 function getCoverageLevel(coverage: EntityCoverage): 'full' | 'partial' | 'none' {
-  const checks = [
-    coverage.useCaseCount > 0,
-    coverage.endpointCount > 0,
-    coverage.hasRelationships,
-  ];
+  const checks = [coverage.useCaseCount > 0, coverage.endpointCount > 0, coverage.hasRelationships];
   const passed = checks.filter(Boolean).length;
   if (passed === checks.length) return 'full';
   if (passed > 0) return 'partial';
   return 'none';
 }
 
-const CATEGORY_LABELS: Record<string, string> = {
-  'uncovered-entity': 'No Use Cases',
-  'unreferenced-method': 'Unreferenced Method',
-  'usecase-no-endpoint': 'No Endpoint',
-  'endpoint-no-usecase': 'No Use Case',
-  'orphan-entity': 'No Relationships',
-};
-
 export function CoveragePanel({ diagram, warnings }: CoveragePanelProps) {
+  const { t } = useTranslation();
+  const categoryLabels: Record<string, string> = {
+    'uncovered-entity': t('coveragePanel.warningNoUseCases'),
+    'unreferenced-method': t('coveragePanel.warningUnreferencedMethod'),
+    'usecase-no-endpoint': t('coveragePanel.warningNoEndpoint'),
+    'endpoint-no-usecase': t('coveragePanel.warningNoUseCase'),
+    'orphan-entity': t('coveragePanel.warningNoRelations'),
+  };
   if (!diagram || diagram.entities.length === 0) {
     return (
       <div className={styles.panel}>
         <div className={styles.emptyState}>
-          <p className={styles.emptyTitle}>No entities to analyze</p>
-          <p className={styles.emptyDescription}>
-            Add entities to your diagram to see coverage analysis.
-          </p>
+          <p className={styles.emptyTitle}>{t('coveragePanel.emptyTitle')}</p>
+          <p className={styles.emptyDescription}>{t('coveragePanel.emptyDescription')}</p>
         </div>
       </div>
     );
@@ -100,29 +95,35 @@ export function CoveragePanel({ diagram, warnings }: CoveragePanelProps) {
       <div className={styles.summary}>
         <div className={styles.percentage}>
           <span className={styles.percentageValue}>{percentage}%</span>
-          <span className={styles.percentageLabel}>fully covered</span>
+          <span className={styles.percentageLabel}>{t('coveragePanel.summaryLabel')}</span>
         </div>
         <div className={styles.counts}>
-          <span className={styles.countFull}>{fullCount} full</span>
+          <span className={styles.countFull}>
+            {t('coveragePanel.countFull', { count: fullCount })}
+          </span>
           <span className={styles.countPartial}>
-            {coverages.filter(c => getCoverageLevel(c) === 'partial').length} partial
+            {t('coveragePanel.countPartial', {
+              count: coverages.filter(c => getCoverageLevel(c) === 'partial').length,
+            })}
           </span>
           <span className={styles.countNone}>
-            {coverages.filter(c => getCoverageLevel(c) === 'none').length} none
+            {t('coveragePanel.countNone', {
+              count: coverages.filter(c => getCoverageLevel(c) === 'none').length,
+            })}
           </span>
         </div>
       </div>
 
       <div className={styles.section}>
-        <h3 className={styles.sectionTitle}>Entity Coverage</h3>
+        <h3 className={styles.sectionTitle}>{t('coveragePanel.sectionCoverage')}</h3>
         <table className={styles.table}>
           <thead>
             <tr>
-              <th className={styles.th}>Entity</th>
-              <th className={styles.thCenter}>Use Cases</th>
-              <th className={styles.thCenter}>Endpoints</th>
-              <th className={styles.thCenter}>Rules</th>
-              <th className={styles.thCenter}>Relations</th>
+              <th className={styles.th}>{t('coveragePanel.tableEntity')}</th>
+              <th className={styles.thCenter}>{t('coveragePanel.tableUseCases')}</th>
+              <th className={styles.thCenter}>{t('coveragePanel.tableEndpoints')}</th>
+              <th className={styles.thCenter}>{t('coveragePanel.tableRules')}</th>
+              <th className={styles.thCenter}>{t('coveragePanel.tableRelations')}</th>
             </tr>
           </thead>
           <tbody>
@@ -134,7 +135,9 @@ export function CoveragePanel({ diagram, warnings }: CoveragePanelProps) {
                   <td className={styles.tdCenter}>{coverage.useCaseCount}</td>
                   <td className={styles.tdCenter}>{coverage.endpointCount}</td>
                   <td className={styles.tdCenter}>{coverage.ruleCount}</td>
-                  <td className={styles.tdCenter}>{coverage.hasRelationships ? 'Yes' : 'No'}</td>
+                  <td className={styles.tdCenter}>
+                    {coverage.hasRelationships ? t('coveragePanel.yes') : t('coveragePanel.no')}
+                  </td>
                 </tr>
               );
             })}
@@ -145,13 +148,13 @@ export function CoveragePanel({ diagram, warnings }: CoveragePanelProps) {
       {warnings.length > 0 && (
         <div className={styles.section}>
           <h3 className={styles.sectionTitle}>
-            Warnings ({warnings.length})
+            {t('coveragePanel.sectionWarnings', { count: warnings.length })}
           </h3>
           <ul className={styles.warningList}>
             {warnings.map((w, i) => (
               <li key={i} className={styles.warningItem}>
                 <span className={styles.warningBadge}>
-                  {CATEGORY_LABELS[w.category] ?? w.category}
+                  {categoryLabels[w.category] ?? w.category}
                 </span>
                 <span className={styles.warningMessage}>{w.message}</span>
               </li>

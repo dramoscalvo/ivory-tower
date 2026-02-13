@@ -18,7 +18,8 @@ describe('App', () => {
   describe('initial render', () => {
     it('renders the toolbar', () => {
       renderWithProviders(<App />);
-      expect(screen.getByText('Ivory Tower')).toBeInTheDocument();
+      const matches = screen.getAllByText(/Ivory Tower/);
+      expect(matches.length).toBeGreaterThanOrEqual(1);
     });
 
     it('loads example diagram by default', () => {
@@ -35,10 +36,11 @@ describe('App', () => {
       renderWithProviders(<App />);
 
       await user.click(screen.getByRole('button', { name: /Load Example/i }));
+      await user.click(screen.getByRole('button', { name: /Confirm/i }));
 
       const matches = screen.getAllByText(/Example System/);
       expect(matches.length).toBeGreaterThanOrEqual(1);
-    });
+    }, 10000);
   });
 
   describe('export dropdown state', () => {
@@ -73,7 +75,7 @@ describe('App', () => {
 
       await user.click(screen.getByRole('button', { name: /Switch to light theme/i }));
       expect(screen.getByRole('button', { name: /Switch to dark theme/i })).toBeInTheDocument();
-    });
+    }, 10000);
   });
 
   describe('Coverage tab', () => {

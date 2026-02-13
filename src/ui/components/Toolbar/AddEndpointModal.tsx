@@ -1,13 +1,9 @@
 import { forwardRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { HttpMethod, AuthType } from '../../../diagram/domain/models/Endpoint';
 import styles from './QuickAddModal.module.css';
 
 const HTTP_METHODS: HttpMethod[] = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'];
-const AUTH_TYPES: { value: AuthType; label: string }[] = [
-  { value: 'public', label: 'Public' },
-  { value: 'authenticated', label: 'Authenticated' },
-  { value: 'admin', label: 'Admin' },
-];
 
 interface UseCaseOption {
   id: string;
@@ -30,11 +26,18 @@ function toKebabCase(text: string): string {
 
 export const AddEndpointModal = forwardRef<HTMLDialogElement, AddEndpointModalProps>(
   function AddEndpointModal({ useCases, onClose, onAdd }, ref) {
+    const { t } = useTranslation();
     const [method, setMethod] = useState<HttpMethod>('GET');
     const [path, setPath] = useState('');
     const [summary, setSummary] = useState('');
     const [auth, setAuth] = useState<AuthType>('authenticated');
     const [useCaseRef, setUseCaseRef] = useState('');
+
+    const authTypes: { value: AuthType; label: string }[] = [
+      { value: 'public', label: t('addEndpointModal.authPublic') },
+      { value: 'authenticated', label: t('addEndpointModal.authAuthenticated') },
+      { value: 'admin', label: t('addEndpointModal.authAdmin') },
+    ];
 
     const handleBackdropClick = (e: React.MouseEvent<HTMLDialogElement>) => {
       if (e.target === e.currentTarget) onClose();
@@ -66,8 +69,13 @@ export const AddEndpointModal = forwardRef<HTMLDialogElement, AddEndpointModalPr
     return (
       <dialog ref={ref} className={styles.dialog} onClick={handleBackdropClick} onClose={onClose}>
         <header className={styles.header}>
-          <h2 className={styles.title}>Add Endpoint</h2>
-          <button type="button" className={styles.closeButton} onClick={onClose} aria-label="Close">
+          <h2 className={styles.title}>{t('addEndpointModal.title')}</h2>
+          <button
+            type="button"
+            className={styles.closeButton}
+            onClick={onClose}
+            aria-label={t('addEndpointModal.close')}
+          >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
             </svg>
@@ -76,7 +84,7 @@ export const AddEndpointModal = forwardRef<HTMLDialogElement, AddEndpointModalPr
         <div className={styles.body}>
           <div className={styles.row}>
             <div className={styles.field}>
-              <label className={styles.label}>Method</label>
+              <label className={styles.label}>{t('addEndpointModal.methodLabel')}</label>
               <select
                 className={styles.select}
                 value={method}
@@ -90,49 +98,49 @@ export const AddEndpointModal = forwardRef<HTMLDialogElement, AddEndpointModalPr
               </select>
             </div>
             <div className={styles.field} style={{ flex: 2 }}>
-              <label className={styles.label}>Path</label>
+              <label className={styles.label}>{t('addEndpointModal.pathLabel')}</label>
               <input
                 className={styles.input}
                 value={path}
                 onChange={e => setPath(e.target.value)}
-                placeholder="/api/users"
+                placeholder={t('addEndpointModal.pathPlaceholder')}
                 autoFocus
               />
             </div>
           </div>
           <div className={styles.field}>
-            <label className={styles.label}>Summary (optional)</label>
+            <label className={styles.label}>{t('addEndpointModal.summaryLabel')}</label>
             <input
               className={styles.input}
               value={summary}
               onChange={e => setSummary(e.target.value)}
-              placeholder="e.g. List all users"
+              placeholder={t('addEndpointModal.summaryPlaceholder')}
             />
           </div>
           <div className={styles.row}>
             <div className={styles.field}>
-              <label className={styles.label}>Auth</label>
+              <label className={styles.label}>{t('addEndpointModal.authLabel')}</label>
               <select
                 className={styles.select}
                 value={auth}
                 onChange={e => setAuth(e.target.value as AuthType)}
               >
-                {AUTH_TYPES.map(a => (
-                  <option key={a.value} value={a.value}>
-                    {a.label}
+                {authTypes.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
                   </option>
                 ))}
               </select>
             </div>
             {useCases.length > 0 && (
               <div className={styles.field}>
-                <label className={styles.label}>Use Case (optional)</label>
+                <label className={styles.label}>{t('addEndpointModal.useCaseLabel')}</label>
                 <select
                   className={styles.select}
                   value={useCaseRef}
                   onChange={e => setUseCaseRef(e.target.value)}
                 >
-                  <option value="">None</option>
+                  <option value="">{t('addEndpointModal.noneOption')}</option>
                   {useCases.map(uc => (
                     <option key={uc.id} value={uc.id}>
                       {uc.name}
@@ -149,7 +157,7 @@ export const AddEndpointModal = forwardRef<HTMLDialogElement, AddEndpointModalPr
               onClick={handleSubmit}
               disabled={!path.trim()}
             >
-              Add Endpoint
+              {t('addEndpointModal.addButton')}
             </button>
           </div>
         </div>

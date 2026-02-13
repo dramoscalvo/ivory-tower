@@ -11,7 +11,7 @@
   align-items: center;
   padding: var(--editor-header-padding-y) var(--editor-header-padding-x);
   background: var(--bg-toolbar);
-  border-bottom: 1px solid var(--border-primary);
+  border-bottom: 0.0625rem solid var(--border-primary);
 }
 
 .fontControls {

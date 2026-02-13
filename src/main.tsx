@@ -1,6 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
+import './ui/i18n/i18n';
 import { ServiceProvider } from './ui/context/ServiceContext';
 import { DiagramService } from './diagram/application/DiagramService';
 import { ExportService } from './export/application/ExportService';

@@ -26,7 +26,7 @@
 .button {
   padding: var(--button-padding-y) var(--button-padding-x);
   background: var(--btn-secondary-bg);
-  border: 1px solid var(--btn-secondary-border);
+  border: 0.0625rem solid var(--btn-secondary-border);
   border-radius: var(--radius-sm);
   color: var(--text-primary);
   font-size: var(--font-md);
@@ -72,7 +72,7 @@
 }
 
 .separator {
-  width: 1px;
+  width: 0.0625rem;
   height: 1.25rem;
   background: var(--border-primary);
   align-self: center;

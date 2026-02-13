@@ -8,7 +8,7 @@
   gap: var(--space-xs);
   padding: var(--button-padding-y) var(--button-padding-x);
   background: var(--btn-secondary-bg);
-  border: 1px solid var(--btn-secondary-border);
+  border: 0.0625rem solid var(--btn-secondary-border);
   border-radius: var(--radius-sm);
   color: var(--text-primary);
   font-size: var(--font-md);
@@ -51,7 +51,7 @@
   right: 0;
   min-width: 10rem;
   background: var(--bg-toolbar);
-  border: 1px solid var(--border-primary);
+  border: 0.0625rem solid var(--border-primary);
   border-radius: var(--radius-md);
   padding: var(--space-xs) 0;
   z-index: var(--z-dropdown);

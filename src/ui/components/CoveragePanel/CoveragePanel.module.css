@@ -31,7 +31,7 @@
   margin-bottom: var(--space-lg);
   padding: var(--space-md);
   background: var(--bg-toolbar);
-  border: 1px solid var(--border-primary);
+  border: 0.0625rem solid var(--border-primary);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
 }
@@ -83,7 +83,7 @@
   color: var(--text-primary);
   margin: 0 0 var(--space-md) 0;
   padding-bottom: var(--space-xs);
-  border-bottom: 1px solid var(--border-primary);
+  border-bottom: 0.0625rem solid var(--border-primary);
 }
 
 .table {
@@ -97,7 +97,7 @@
   padding: var(--space-sm);
   color: var(--text-secondary);
   font-weight: 600;
-  border-bottom: 1px solid var(--border-primary);
+  border-bottom: 0.0625rem solid var(--border-primary);
 }
 
 .thCenter {
@@ -105,7 +105,7 @@
   padding: var(--space-sm);
   color: var(--text-secondary);
   font-weight: 600;
-  border-bottom: 1px solid var(--border-primary);
+  border-bottom: 0.0625rem solid var(--border-primary);
 }
 
 .entityName {

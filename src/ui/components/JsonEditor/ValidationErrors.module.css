@@ -4,7 +4,7 @@
   overflow-y: auto;
   padding: var(--validation-padding-y) var(--validation-padding-x);
   background: var(--bg-error);
-  border-top: 1px solid var(--border-error);
+  border-top: 0.0625rem solid var(--border-error);
 }
 
 .error {

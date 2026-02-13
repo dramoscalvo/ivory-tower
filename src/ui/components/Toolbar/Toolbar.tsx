@@ -1,4 +1,5 @@
 import { useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useExport } from './useExport';
 import { ExportDropdown } from './ExportDropdown';
 import { AddDropdown } from './AddDropdown';
@@ -7,6 +8,7 @@ import { AddEntityModal } from './AddEntityModal';
 import { AddRelationshipModal } from './AddRelationshipModal';
 import { AddUseCaseModal } from './AddUseCaseModal';
 import { AddEndpointModal } from './AddEndpointModal';
+import { ConfirmDialog } from './ConfirmDialog';
 import type { ShareStatus } from '../../hooks/useUrlSharing';
 import logoUrl from '/ivoryTower_1.png';
 import styles from './Toolbar.module.css';
@@ -60,15 +62,24 @@ export function Toolbar({
   onAddUseCase,
   onAddEndpoint,
 }: ToolbarProps) {
-  const { handleExport, handleExportJson, handleExportMermaid, canExport } = useExport(json, hasValidDiagram);
+  const { t } = useTranslation();
+  const { handleExport, handleExportJson, handleExportMermaid, canExport } = useExport(
+    json,
+    hasValidDiagram,
+  );
   const importRef = useRef<HTMLDialogElement>(null);
   const addEntityRef = useRef<HTMLDialogElement>(null);
   const addRelRef = useRef<HTMLDialogElement>(null);
   const addUcRef = useRef<HTMLDialogElement>(null);
   const addEpRef = useRef<HTMLDialogElement>(null);
+  const confirmRef = useRef<HTMLDialogElement>(null);
 
   const shareLabel =
-    shareStatus === 'copied' ? 'Copied!' : shareStatus === 'error' ? 'Error' : 'Share';
+    shareStatus === 'copied'
+      ? t('toolbar.shareCopied')
+      : shareStatus === 'error'
+        ? t('toolbar.shareError')
+        : t('toolbar.share');
 
   return (
     <div className={styles.toolbar}>
@@ -90,10 +101,14 @@ export function Toolbar({
           onClick={() => importRef.current?.showModal()}
           type="button"
         >
-          Import
+          {t('toolbar.import')}
         </button>
-        <button className={styles.button} onClick={onLoadExample} type="button">
-          Load Example
+        <button
+          className={styles.button}
+          onClick={() => confirmRef.current?.showModal()}
+          type="button"
+        >
+          {t('toolbar.loadExample')}
         </button>
         <button
           className={styles.button}
@@ -136,6 +151,13 @@ export function Toolbar({
         useCases={useCases}
         onClose={() => addEpRef.current?.close()}
         onAdd={onAddEndpoint}
+      />
+      <ConfirmDialog
+        ref={confirmRef}
+        title={t('toolbar.confirmLoadTitle')}
+        message={t('toolbar.confirmLoadMessage')}
+        onConfirm={onLoadExample}
+        onClose={() => confirmRef.current?.close()}
       />
     </div>
   );

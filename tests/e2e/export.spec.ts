@@ -1,5 +1,20 @@
 import { test, expect } from '@playwright/test';
 
+const ARCH_KEY = 'uml-architecture-json';
+
+/** Set editor content via localStorage and reload. */
+async function setDiagram(page: import('@playwright/test').Page, json: string) {
+  await page.evaluate(
+    ([arch, uc]) => {
+      localStorage.setItem('uml-architecture-json', arch);
+      localStorage.setItem('uml-usecases-json', uc);
+    },
+    [json, '[]'] as const,
+  );
+  await page.reload();
+  await page.locator('.cm-editor').waitFor();
+}
+
 test.describe('Export', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
@@ -7,22 +22,22 @@ test.describe('Export', () => {
     await page.reload();
   });
 
-  test('export button is enabled for valid diagram', async ({ page }) => {
+  test('export dropdown is enabled for valid diagram', async ({ page }) => {
     await page.goto('/');
 
-    // Default example should be valid
-    const exportButton = page.getByRole('button', { name: /Export TOON/i });
-    await expect(exportButton).toBeEnabled();
+    // Default example should be valid — Export trigger should be enabled
+    const exportTrigger = page.getByRole('button', { name: 'Export' });
+    await expect(exportTrigger).toBeEnabled();
   });
 
-  test('export button is disabled for invalid diagram', async ({ page }) => {
+  test('export dropdown is disabled for invalid diagram', async ({ page }) => {
     await page.goto('/');
 
-    const editor = page.getByRole('textbox');
-    await editor.fill('{ invalid }');
+    // Set invalid diagram
+    await setDiagram(page, '{ invalid }');
 
-    const exportButton = page.getByRole('button', { name: /Export TOON/i });
-    await expect(exportButton).toBeDisabled();
+    const exportTrigger = page.getByRole('button', { name: 'Export' });
+    await expect(exportTrigger).toBeDisabled();
   });
 
   test('clicking export downloads a .toon file', async ({ page }) => {
@@ -34,15 +49,16 @@ test.describe('Export', () => {
       entities: [{ id: 'a', name: 'A', type: 'class' }],
       relationships: [],
     });
-    await page.getByRole('textbox').fill(diagram);
+    await setDiagram(page, diagram);
 
-    // Wait for the export button to be enabled
-    const exportButton = page.getByRole('button', { name: /Export TOON/i });
-    await expect(exportButton).toBeEnabled();
+    // Open Export dropdown and click Export TOON
+    await page.getByRole('button', { name: 'Export' }).click();
+    const exportToon = page.getByRole('menuitem', { name: /Export TOON/i });
+    await expect(exportToon).toBeVisible();
 
     // Listen for download
     const downloadPromise = page.waitForEvent('download');
-    await exportButton.click();
+    await exportToon.click();
     const download = await downloadPromise;
 
     // Check filename
@@ -64,13 +80,15 @@ test.describe('Export', () => {
       ],
       relationships: [],
     });
-    await page.getByRole('textbox').fill(diagram);
+    await setDiagram(page, diagram);
 
-    const exportButton = page.getByRole('button', { name: /Export TOON/i });
-    await expect(exportButton).toBeEnabled();
+    // Open Export dropdown and click Export TOON
+    await page.getByRole('button', { name: 'Export' }).click();
+    const exportToon = page.getByRole('menuitem', { name: /Export TOON/i });
+    await expect(exportToon).toBeVisible();
 
     const downloadPromise = page.waitForEvent('download');
-    await exportButton.click();
+    await exportToon.click();
     const download = await downloadPromise;
 
     // Read content

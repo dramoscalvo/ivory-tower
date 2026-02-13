@@ -1,3 +1,4 @@
+import { Trans, useTranslation } from 'react-i18next';
 import { UseCaseCard } from './UseCaseCard';
 import type { UseCase } from '../../../usecase/domain/models/UseCase';
 import type { Entity } from '../../../diagram/domain/models/Entity';
@@ -11,6 +12,7 @@ interface UseCasePanelProps {
 }
 
 export function UseCasePanel({ useCases, entities, actors }: UseCasePanelProps) {
+  const { t } = useTranslation();
   const entityMap = new Map(entities.map(e => [e.id, e]));
   const actorMap = new Map((actors ?? []).map(a => [a.id, a]));
 
@@ -18,10 +20,9 @@ export function UseCasePanel({ useCases, entities, actors }: UseCasePanelProps) 
     return (
       <div className={styles.panel}>
         <div className={styles.emptyState}>
-          <p className={styles.emptyTitle}>No use cases defined</p>
+          <p className={styles.emptyTitle}>{t('useCasePanel.emptyTitle')}</p>
           <p className={styles.emptyDescription}>
-            Add a <code>useCases</code> array to your JSON to define Gherkin-style test
-            specifications.
+            <Trans i18nKey="useCasePanel.emptyDescription" components={{ code: <code /> }} />
           </p>
         </div>
       </div>
@@ -43,7 +44,7 @@ export function UseCasePanel({ useCases, entities, actors }: UseCasePanelProps) 
           <section key={entityRef} className={styles.entityGroup}>
             <h2 className={styles.entityGroupTitle}>
               {entity ? entity.name : entityRef}
-              {!entity && <span className={styles.warning}> (entity not found)</span>}
+              {!entity && <span className={styles.warning}> {t('useCaseCard.notFound')}</span>}
             </h2>
             {entityUseCases.map(useCase => (
               <UseCaseCard

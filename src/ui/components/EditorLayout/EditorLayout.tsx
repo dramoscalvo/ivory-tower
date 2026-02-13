@@ -1,15 +1,10 @@
 import { useState, useEffect, useRef, type ReactNode } from 'react';
-import { Footer } from '../Footer';
-import { TabPanel } from '../TabPanel';
-import type { Tab } from '../TabPanel';
+import { useTranslation } from 'react-i18next';
+import { Footer } from '../Footer/Footer';
+import { TabPanel } from '../TabPanel/TabPanel';
+import type { Tab } from '../TabPanel/TabPanel';
 import type { Theme } from '../../hooks/useTheme';
 import styles from './EditorLayout.module.css';
-
-const TABS: Tab[] = [
-  { id: 'architecture', label: 'Architecture' },
-  { id: 'usecases', label: 'Use Cases' },
-  { id: 'coverage', label: 'Coverage' },
-];
 
 interface EditorLayoutProps {
   toolbar: ReactNode;
@@ -48,9 +43,15 @@ export function EditorLayout({
   theme,
   onToggleTheme,
 }: EditorLayoutProps) {
+  const { t } = useTranslation();
   const [editorWidth, setEditorWidth] = useState(loadEditorWidth);
   const [isResizing, setIsResizing] = useState(false);
   const mainRef = useRef<HTMLElement>(null);
+  const tabs: Tab[] = [
+    { id: 'architecture', label: t('tabs.architecture') },
+    { id: 'usecases', label: t('tabs.useCases') },
+    { id: 'coverage', label: t('tabs.coverage') },
+  ];
 
   const handleResizeStart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -102,7 +103,7 @@ export function EditorLayout({
           onMouseDown={handleResizeStart}
         />
         <section className={styles.rightPane}>
-          <TabPanel tabs={TABS} activeTab={activeTab} onTabChange={onTabChange}>
+          <TabPanel tabs={tabs} activeTab={activeTab} onTabChange={onTabChange}>
             {activeTab === 'architecture' ? (
               <div className={styles.canvas}>{canvas}</div>
             ) : activeTab === 'usecases' ? (

@@ -10,7 +10,7 @@
   flex-shrink: 0;
   padding: var(--toolbar-padding-y) var(--toolbar-padding-x);
   background: var(--bg-toolbar);
-  border-bottom: 1px solid var(--border-primary);
+  border-bottom: 0.0625rem solid var(--border-primary);
   box-shadow: var(--shadow-sm);
   position: relative;
   z-index: 1;

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { ScenarioView } from './ScenarioView';
 import type { UseCase } from '../../../usecase/domain/models/UseCase';
 import type { Entity } from '../../../diagram/domain/models/Entity';
@@ -11,6 +12,7 @@ interface UseCaseCardProps {
 }
 
 export function UseCaseCard({ useCase, entity, actor }: UseCaseCardProps) {
+  const { t } = useTranslation();
   return (
     <article className={styles.card}>
       <header className={styles.cardHeader}>
@@ -18,19 +20,27 @@ export function UseCaseCard({ useCase, entity, actor }: UseCaseCardProps) {
         <div className={styles.cardMeta}>
           <span className={styles.entityRef}>
             {entity ? entity.name : useCase.entityRef}
-            {!entity && <span className={styles.warning}> (not found)</span>}
+            {!entity && <span className={styles.warning}> {t('useCaseCard.notFound')}</span>}
           </span>
           {useCase.methodRef && <span className={styles.methodRef}>.{useCase.methodRef}()</span>}
-          {actor && <span className={styles.actorRef}> by {actor.name}</span>}
+          {actor && (
+            <span className={styles.actorRef}>
+              {' '}
+              {t('useCaseCard.byActor', { actor: actor.name })}
+            </span>
+          )}
           {useCase.actorRef && !actor && (
-            <span className={styles.actorRef}> by {useCase.actorRef}</span>
+            <span className={styles.actorRef}>
+              {' '}
+              {t('useCaseCard.byActor', { actor: useCase.actorRef })}
+            </span>
           )}
         </div>
       </header>
       {useCase.description && <p className={styles.cardDescription}>{useCase.description}</p>}
       {useCase.preconditions && useCase.preconditions.length > 0 && (
         <div className={styles.conditions}>
-          <h4 className={styles.conditionsLabel}>Preconditions</h4>
+          <h4 className={styles.conditionsLabel}>{t('useCaseCard.preconditions')}</h4>
           <ul className={styles.conditionsList}>
             {useCase.preconditions.map((condition, index) => (
               <li key={index} className={styles.conditionItem}>
@@ -47,7 +57,7 @@ export function UseCaseCard({ useCase, entity, actor }: UseCaseCardProps) {
       </div>
       {useCase.postconditions && useCase.postconditions.length > 0 && (
         <div className={styles.conditions}>
-          <h4 className={styles.conditionsLabel}>Postconditions</h4>
+          <h4 className={styles.conditionsLabel}>{t('useCaseCard.postconditions')}</h4>
           <ul className={styles.conditionsList}>
             {useCase.postconditions.map((condition, index) => (
               <li key={index} className={styles.conditionItem}>

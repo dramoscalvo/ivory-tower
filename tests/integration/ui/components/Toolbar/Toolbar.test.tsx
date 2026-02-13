@@ -41,14 +41,35 @@ describe('Toolbar', () => {
       expect(screen.getByRole('button', { name: /Load Example/i })).toBeInTheDocument();
     });
 
-    it('calls onLoadExample when clicked', async () => {
+    it('shows confirmation dialog when Load Example is clicked', async () => {
+      const user = userEvent.setup();
+
+      renderWithProviders(<Toolbar {...defaultProps} />);
+
+      await user.click(screen.getByRole('button', { name: /Load Example/i }));
+      expect(screen.getByText('This will replace your current work. Are you sure?')).toBeInTheDocument();
+    });
+
+    it('calls onLoadExample when confirmed', async () => {
       const user = userEvent.setup();
       const onLoadExample = vi.fn();
 
       renderWithProviders(<Toolbar {...defaultProps} onLoadExample={onLoadExample} />);
 
       await user.click(screen.getByRole('button', { name: /Load Example/i }));
+      await user.click(screen.getByRole('button', { name: /Confirm/i }));
       expect(onLoadExample).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not call onLoadExample when cancelled', async () => {
+      const user = userEvent.setup();
+      const onLoadExample = vi.fn();
+
+      renderWithProviders(<Toolbar {...defaultProps} onLoadExample={onLoadExample} />);
+
+      await user.click(screen.getByRole('button', { name: /Load Example/i }));
+      await user.click(screen.getByRole('button', { name: /Cancel/i }));
+      expect(onLoadExample).not.toHaveBeenCalled();
     });
   });
 

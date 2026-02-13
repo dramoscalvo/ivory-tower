@@ -1,4 +1,5 @@
 import { forwardRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import styles from './QuickAddModal.module.css';
 
 interface EntityOption {
@@ -28,6 +29,7 @@ function toKebabCase(name: string): string {
 
 export const AddUseCaseModal = forwardRef<HTMLDialogElement, AddUseCaseModalProps>(
   function AddUseCaseModal({ entities, actors, onClose, onAdd }, ref) {
+    const { t } = useTranslation();
     const [name, setName] = useState('');
     const [entityRef, setEntityRef] = useState('');
     const [methodRef, setMethodRef] = useState('');
@@ -51,11 +53,11 @@ export const AddUseCaseModal = forwardRef<HTMLDialogElement, AddUseCaseModalProp
         entityRef,
         scenarios: [
           {
-            name: 'Happy path',
+            name: t('addUseCaseModal.scenarioName'),
             steps: [
-              { keyword: 'Given', text: 'the preconditions are met' },
-              { keyword: 'When', text: `${trimmedName} is performed` },
-              { keyword: 'Then', text: 'the expected outcome occurs' },
+              { keyword: 'Given', text: t('addUseCaseModal.stepGiven') },
+              { keyword: 'When', text: t('addUseCaseModal.stepWhen', { name: trimmedName }) },
+              { keyword: 'Then', text: t('addUseCaseModal.stepThen') },
             ],
           },
         ],
@@ -77,8 +79,13 @@ export const AddUseCaseModal = forwardRef<HTMLDialogElement, AddUseCaseModalProp
     return (
       <dialog ref={ref} className={styles.dialog} onClick={handleBackdropClick} onClose={onClose}>
         <header className={styles.header}>
-          <h2 className={styles.title}>Add Use Case</h2>
-          <button type="button" className={styles.closeButton} onClick={onClose} aria-label="Close">
+          <h2 className={styles.title}>{t('addUseCaseModal.title')}</h2>
+          <button
+            type="button"
+            className={styles.closeButton}
+            onClick={onClose}
+            aria-label={t('addUseCaseModal.close')}
+          >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
             </svg>
@@ -86,18 +93,18 @@ export const AddUseCaseModal = forwardRef<HTMLDialogElement, AddUseCaseModalProp
         </header>
         <div className={styles.body}>
           <div className={styles.field}>
-            <label className={styles.label}>Name</label>
+            <label className={styles.label}>{t('addUseCaseModal.nameLabel')}</label>
             <input
               className={styles.input}
               value={name}
               onChange={e => setName(e.target.value)}
-              placeholder="e.g. Update User Email"
+              placeholder={t('addUseCaseModal.namePlaceholder')}
               autoFocus
             />
           </div>
           <div className={styles.row}>
             <div className={styles.field}>
-              <label className={styles.label}>Entity</label>
+              <label className={styles.label}>{t('addUseCaseModal.entityLabel')}</label>
               <select
                 className={styles.select}
                 value={entityRef}
@@ -106,7 +113,7 @@ export const AddUseCaseModal = forwardRef<HTMLDialogElement, AddUseCaseModalProp
                   setMethodRef('');
                 }}
               >
-                <option value="">Select entity...</option>
+                <option value="">{t('addUseCaseModal.selectEntity')}</option>
                 {entities.map(e => (
                   <option key={e.id} value={e.id}>
                     {e.name}
@@ -115,14 +122,14 @@ export const AddUseCaseModal = forwardRef<HTMLDialogElement, AddUseCaseModalProp
               </select>
             </div>
             <div className={styles.field}>
-              <label className={styles.label}>Method (optional)</label>
+              <label className={styles.label}>{t('addUseCaseModal.methodLabel')}</label>
               <select
                 className={styles.select}
                 value={methodRef}
                 onChange={e => setMethodRef(e.target.value)}
                 disabled={methods.length === 0}
               >
-                <option value="">None</option>
+                <option value="">{t('addUseCaseModal.noneOption')}</option>
                 {methods.map(m => (
                   <option key={m.name} value={m.name}>
                     {m.name}
@@ -133,13 +140,13 @@ export const AddUseCaseModal = forwardRef<HTMLDialogElement, AddUseCaseModalProp
           </div>
           {actors.length > 0 && (
             <div className={styles.field}>
-              <label className={styles.label}>Actor (optional)</label>
+              <label className={styles.label}>{t('addUseCaseModal.actorLabel')}</label>
               <select
                 className={styles.select}
                 value={actorRef}
                 onChange={e => setActorRef(e.target.value)}
               >
-                <option value="">None</option>
+                <option value="">{t('addUseCaseModal.noneOption')}</option>
                 {actors.map(a => (
                   <option key={a.id} value={a.id}>
                     {a.name}
@@ -149,12 +156,12 @@ export const AddUseCaseModal = forwardRef<HTMLDialogElement, AddUseCaseModalProp
             </div>
           )}
           <div className={styles.field}>
-            <label className={styles.label}>Description (optional)</label>
+            <label className={styles.label}>{t('addUseCaseModal.descriptionLabel')}</label>
             <textarea
               className={styles.textarea}
               value={description}
               onChange={e => setDescription(e.target.value)}
-              placeholder="What does this use case test?"
+              placeholder={t('addUseCaseModal.descriptionPlaceholder')}
               rows={2}
             />
           </div>
@@ -165,7 +172,7 @@ export const AddUseCaseModal = forwardRef<HTMLDialogElement, AddUseCaseModalProp
               onClick={handleSubmit}
               disabled={!name.trim() || !entityRef}
             >
-              Add Use Case
+              {t('addUseCaseModal.addButton')}
             </button>
           </div>
         </div>

@@ -1,6 +1,6 @@
 .dialog {
   padding: 0;
-  border: 1px solid var(--border-primary);
+  border: 0.0625rem solid var(--border-primary);
   border-radius: var(--radius-md);
   background: var(--bg-toolbar);
   color: var(--text-primary);
@@ -18,7 +18,7 @@
   justify-content: space-between;
   align-items: center;
   padding: var(--space-lg);
-  border-bottom: 1px solid var(--border-primary);
+  border-bottom: 0.0625rem solid var(--border-primary);
 }
 
 .title {
@@ -70,7 +70,7 @@
   padding: var(--button-small-padding-y) var(--button-small-padding-x);
   background: var(--bg-input);
   color: var(--text-primary);
-  border: 1px solid var(--border-primary);
+  border: 0.0625rem solid var(--border-primary);
   border-radius: var(--radius-sm);
   font-size: var(--font-md);
   font-family: inherit;
@@ -86,7 +86,7 @@
   padding: var(--button-small-padding-y) var(--button-small-padding-x);
   background: var(--bg-input);
   color: var(--text-primary);
-  border: 1px solid var(--border-primary);
+  border: 0.0625rem solid var(--border-primary);
   border-radius: var(--radius-sm);
   font-size: var(--font-md);
 }
@@ -100,7 +100,7 @@
   line-height: 1.5;
   background: var(--bg-input);
   color: var(--text-primary);
-  border: 1px solid var(--border-primary);
+  border: 0.0625rem solid var(--border-primary);
   border-radius: var(--radius-sm);
   outline: none;
 }
@@ -129,7 +129,7 @@
 .submitButton {
   padding: var(--button-padding-y) var(--button-padding-x);
   background: var(--btn-primary-bg);
-  border: 1px solid var(--btn-primary-border);
+  border: 0.0625rem solid var(--btn-primary-border);
   border-radius: var(--radius-sm);
   color: var(--white);
   font-size: var(--font-md);

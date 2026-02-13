@@ -1,33 +1,38 @@
 import { test, expect } from '@playwright/test';
 
+const ARCH_KEY = 'uml-architecture-json';
+
+/** Set editor content via localStorage and reload. */
+async function setDiagram(page: import('@playwright/test').Page, json: string) {
+  await page.evaluate(
+    ([arch, uc]) => {
+      localStorage.setItem('uml-architecture-json', arch);
+      localStorage.setItem('uml-usecases-json', uc);
+    },
+    [json, '[]'] as const,
+  );
+  await page.reload();
+  await page.locator('.cm-editor').waitFor();
+}
+
 test.describe('Persistence', () => {
   test('diagram persists after page reload', async ({ page }) => {
     await page.goto('/');
 
-    // Clear any existing data and reload
-    await page.evaluate(() => localStorage.clear());
-    await page.reload();
-
-    // Enter a custom diagram
+    // Set custom diagram via localStorage
     const customDiagram = JSON.stringify({
       title: 'Persisted Diagram',
       entities: [{ id: 'test', name: 'TestEntity', type: 'class' }],
       relationships: [],
     });
+    await setDiagram(page, customDiagram);
 
-    const editor = page.getByRole('textbox');
-    await editor.fill(customDiagram);
+    // Editor should show the custom diagram
+    await expect(page.locator('.cm-content')).toContainText('Persisted Diagram');
 
-    // Verify it's saved
-    const saved = await page.evaluate(() => localStorage.getItem('uml-diagram-json'));
-    expect(saved).toContain('Persisted Diagram');
-
-    // Reload the page
+    // Reload the page — diagram should still be there
     await page.reload();
-
-    // Should still have the custom diagram
-    const editorAfterReload = page.getByRole('textbox');
-    await expect(editorAfterReload).toContainText('Persisted Diagram');
+    await expect(page.locator('.cm-content')).toContainText('Persisted Diagram');
   });
 
   test('new diagram overwrites previous', async ({ page }) => {
@@ -39,11 +44,8 @@ test.describe('Persistence', () => {
       entities: [],
       relationships: [],
     });
-    await page.getByRole('textbox').fill(firstDiagram);
-
-    // Verify first is saved
-    let saved = await page.evaluate(() => localStorage.getItem('uml-diagram-json'));
-    expect(saved).toContain('First Diagram');
+    await setDiagram(page, firstDiagram);
+    await expect(page.locator('.cm-content')).toContainText('First Diagram');
 
     // Set second diagram
     const secondDiagram = JSON.stringify({
@@ -51,15 +53,14 @@ test.describe('Persistence', () => {
       entities: [],
       relationships: [],
     });
-    await page.getByRole('textbox').fill(secondDiagram);
+    await setDiagram(page, secondDiagram);
 
     // Verify second overwrites first
-    saved = await page.evaluate(() => localStorage.getItem('uml-diagram-json'));
-    expect(saved).toContain('Second Diagram');
-    expect(saved).not.toContain('First Diagram');
+    await expect(page.locator('.cm-content')).toContainText('Second Diagram');
+    await expect(page.locator('.cm-content')).not.toContainText('First Diagram');
   });
 
-  test('Load Example button resets to default', async ({ page }) => {
+  test('Load Example button resets to default after confirmation', async ({ page }) => {
     await page.goto('/');
 
     // Start with custom diagram
@@ -68,17 +69,40 @@ test.describe('Persistence', () => {
       entities: [],
       relationships: [],
     });
-    await page.getByRole('textbox').fill(customDiagram);
+    await setDiagram(page, customDiagram);
 
-    // Click Load Example
+    // Click Load Example and confirm
     await page.getByRole('button', { name: /Load Example/i }).click();
+    await page.getByRole('button', { name: /Confirm/i }).click();
 
     // Should have example diagram
-    const editor = page.getByRole('textbox');
-    await expect(editor).toContainText('Example System');
+    await expect(page.locator('.cm-content')).toContainText('Example System');
 
     // localStorage should also be updated
-    const saved = await page.evaluate(() => localStorage.getItem('uml-diagram-json'));
+    const saved = await page.evaluate(
+      (key) => localStorage.getItem(key),
+      'uml-architecture-json',
+    );
     expect(saved).toContain('Example System');
+  });
+
+  test('Load Example cancellation preserves current work', async ({ page }) => {
+    await page.goto('/');
+
+    // Start with custom diagram
+    const customDiagram = JSON.stringify({
+      title: 'Custom',
+      entities: [],
+      relationships: [],
+    });
+    await setDiagram(page, customDiagram);
+
+    // Click Load Example then cancel
+    await page.getByRole('button', { name: /Load Example/i }).click();
+    await page.getByRole('button', { name: /Cancel/i }).click();
+
+    // Should still have custom diagram
+    await expect(page.locator('.cm-content')).toContainText('Custom');
+    await expect(page.locator('.cm-content')).not.toContainText('Example System');
   });
 });

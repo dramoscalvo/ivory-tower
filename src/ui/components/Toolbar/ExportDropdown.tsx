@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import styles from './Dropdown.module.css';
 
 interface ExportDropdownProps {
@@ -16,6 +17,7 @@ export function ExportDropdown({
   onExportSvg,
   onExportMermaid,
 }: ExportDropdownProps) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
@@ -45,17 +47,24 @@ export function ExportDropdown({
         onClick={() => setOpen(prev => !prev)}
         disabled={!canExport}
         type="button"
-        aria-label="Export"
+        aria-label={t('toolbar.export')}
         aria-expanded={open}
       >
-        Export
+        {t('toolbar.export')}
         <svg
           className={`${styles.chevron} ${open ? styles.chevronOpen : ''}`}
           viewBox="0 0 10 6"
           fill="currentColor"
           aria-hidden="true"
         >
-          <path d="M1 1l4 4 4-4" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+          <path
+            d="M1 1l4 4 4-4"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
         </svg>
       </button>
       {open && (
@@ -66,7 +75,7 @@ export function ExportDropdown({
             type="button"
             role="menuitem"
           >
-            Export TOON
+            {t('toolbar.exportToon')}
           </button>
           <button
             className={styles.menuItem}
@@ -74,7 +83,7 @@ export function ExportDropdown({
             type="button"
             role="menuitem"
           >
-            Export JSON
+            {t('toolbar.exportJson')}
           </button>
           <button
             className={styles.menuItem}
@@ -82,7 +91,7 @@ export function ExportDropdown({
             type="button"
             role="menuitem"
           >
-            Export SVG
+            {t('toolbar.exportSvg')}
           </button>
           <button
             className={styles.menuItem}
@@ -90,7 +99,7 @@ export function ExportDropdown({
             type="button"
             role="menuitem"
           >
-            Export Mermaid
+            {t('toolbar.exportMermaid')}
           </button>
         </div>
       )}

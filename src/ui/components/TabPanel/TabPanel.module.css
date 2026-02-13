@@ -9,7 +9,7 @@
   gap: var(--tab-gap);
   background: var(--tab-bg);
   padding: var(--space-xs) var(--space-sm);
-  border-bottom: 1px solid var(--border-primary);
+  border-bottom: 0.0625rem solid var(--border-primary);
   flex-shrink: 0;
 }
 

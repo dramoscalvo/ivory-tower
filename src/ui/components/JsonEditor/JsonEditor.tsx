@@ -1,7 +1,8 @@
 import { forwardRef, useRef, useImperativeHandle } from 'react';
-import { CodeEditor } from './CodeEditor';
+import { useTranslation } from 'react-i18next';
+import { CodeEditor } from './CodeEditor/CodeEditor';
 import { ValidationErrors } from './ValidationErrors';
-import type { CodeEditorHandle } from './CodeEditor';
+import type { CodeEditorHandle } from './CodeEditor/CodeEditor';
 import type { ValidationError } from '../../../diagram/domain/services/DiagramValidator';
 import styles from './JsonEditor.module.css';
 
@@ -51,6 +52,7 @@ export const JsonEditor = forwardRef<JsonEditorHandle, JsonEditorProps>(function
   },
   ref,
 ) {
+  const { t } = useTranslation();
   const codeEditorRef = useRef<CodeEditorHandle>(null);
 
   const handlePrettify = () => {
@@ -97,9 +99,9 @@ export const JsonEditor = forwardRef<JsonEditorHandle, JsonEditorProps>(function
             className={styles.fontButton}
             onClick={handleDecreaseFontSize}
             disabled={currentIndex === 0}
-            title="Decrease font size"
+            title={t('jsonEditor.decreaseFont')}
             type="button"
-            aria-label="Decrease font size"
+            aria-label={t('jsonEditor.decreaseFont')}
           >
             A−
           </button>
@@ -107,18 +109,18 @@ export const JsonEditor = forwardRef<JsonEditorHandle, JsonEditorProps>(function
             className={styles.fontButton}
             onClick={handleIncreaseFontSize}
             disabled={currentIndex === FONT_SIZES.length - 1}
-            title="Increase font size"
+            title={t('jsonEditor.increaseFont')}
             type="button"
-            aria-label="Increase font size"
+            aria-label={t('jsonEditor.increaseFont')}
           >
             A+
           </button>
           <button
             className={`${styles.fontButton} ${vimMode ? styles.vimActive : ''}`}
             onClick={() => onVimModeChange(!vimMode)}
-            title={vimMode ? 'Disable Vim mode' : 'Enable Vim mode'}
+            title={vimMode ? t('jsonEditor.disableVim') : t('jsonEditor.enableVim')}
             type="button"
-            aria-label="Toggle Vim mode"
+            aria-label={t('jsonEditor.toggleVim')}
             aria-pressed={vimMode}
           >
             Vim
@@ -130,9 +132,9 @@ export const JsonEditor = forwardRef<JsonEditorHandle, JsonEditorProps>(function
               className={styles.fontButton}
               onClick={onUndo}
               disabled={!canUndo}
-              title="Undo (Ctrl+Z)"
+              title={t('jsonEditor.undo')}
               type="button"
-              aria-label="Undo"
+              aria-label={t('jsonEditor.undo')}
             >
               <svg
                 width="14"
@@ -150,9 +152,9 @@ export const JsonEditor = forwardRef<JsonEditorHandle, JsonEditorProps>(function
               className={styles.fontButton}
               onClick={onRedo}
               disabled={!canRedo}
-              title="Redo (Ctrl+Y)"
+              title={t('jsonEditor.redo')}
               type="button"
-              aria-label="Redo"
+              aria-label={t('jsonEditor.redo')}
             >
               <svg
                 width="14"
@@ -168,7 +170,7 @@ export const JsonEditor = forwardRef<JsonEditorHandle, JsonEditorProps>(function
           <button
             className={styles.prettifyButton}
             onClick={handlePrettify}
-            title="Prettify JSON (Ctrl+Shift+F)"
+            title={t('jsonEditor.prettify')}
             type="button"
           >
             {'{ }'}
