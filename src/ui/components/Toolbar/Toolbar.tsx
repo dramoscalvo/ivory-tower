@@ -4,12 +4,15 @@ import { useExport } from './useExport';
 import { ExportDropdown } from './ExportDropdown';
 import { AddDropdown } from './AddDropdown';
 import { ImportModal } from './ImportModal';
+import { AddActorModal } from './AddActorModal';
 import { AddEntityModal } from './AddEntityModal';
 import { AddRelationshipModal } from './AddRelationshipModal';
 import { AddUseCaseModal } from './AddUseCaseModal';
 import { AddEndpointModal } from './AddEndpointModal';
+import { AddRuleModal } from './AddRuleModal';
 import { ConfirmDialog } from './ConfirmDialog';
 import type { ShareStatus } from '../../hooks/useUrlSharing';
+import type { ImportResult } from './ImportModal';
 import logoUrl from '/ivoryTower_1.png';
 import styles from './Toolbar.module.css';
 
@@ -17,6 +20,8 @@ interface EntityOption {
   id: string;
   name: string;
   methods?: { name: string }[];
+  functions?: { name: string }[];
+  fieldNames: string[];
 }
 
 interface ActorOption {
@@ -35,15 +40,20 @@ interface ToolbarProps {
   onLoadExample: () => void;
   onShare: () => void;
   shareStatus: ShareStatus;
-  onImport: (json: string) => void;
+  onImport: (payload: ImportResult) => void;
   onExportSvg: () => void;
   entities: EntityOption[];
   actors: ActorOption[];
   useCases: UseCaseOption[];
+  relationshipIds: string[];
+  endpointIds: string[];
+  ruleIds: string[];
   onAddEntity: (entityJson: string) => void;
+  onAddActor: (actorJson: string) => void;
   onAddRelationship: (relationshipJson: string) => void;
   onAddUseCase: (useCaseJson: string) => void;
   onAddEndpoint: (endpointJson: string) => void;
+  onAddRule: (ruleJson: string) => void;
 }
 
 export function Toolbar({
@@ -57,10 +67,15 @@ export function Toolbar({
   entities,
   actors,
   useCases,
+  relationshipIds,
+  endpointIds,
+  ruleIds,
   onAddEntity,
+  onAddActor,
   onAddRelationship,
   onAddUseCase,
   onAddEndpoint,
+  onAddRule,
 }: ToolbarProps) {
   const { t } = useTranslation();
   const { handleExport, handleExportJson, handleExportMermaid, canExport } = useExport(
@@ -69,9 +84,11 @@ export function Toolbar({
   );
   const importRef = useRef<HTMLDialogElement>(null);
   const addEntityRef = useRef<HTMLDialogElement>(null);
+  const addActorRef = useRef<HTMLDialogElement>(null);
   const addRelRef = useRef<HTMLDialogElement>(null);
   const addUcRef = useRef<HTMLDialogElement>(null);
   const addEpRef = useRef<HTMLDialogElement>(null);
+  const addRuleRef = useRef<HTMLDialogElement>(null);
   const confirmRef = useRef<HTMLDialogElement>(null);
 
   const shareLabel =
@@ -91,9 +108,11 @@ export function Toolbar({
         <AddDropdown
           entityCount={entities.length}
           onAddEntity={() => addEntityRef.current?.showModal()}
+          onAddActor={() => addActorRef.current?.showModal()}
           onAddRelationship={() => addRelRef.current?.showModal()}
           onAddUseCase={() => addUcRef.current?.showModal()}
           onAddEndpoint={() => addEpRef.current?.showModal()}
+          onAddRule={() => addRuleRef.current?.showModal()}
         />
         <div className={styles.separator} />
         <button
@@ -130,12 +149,20 @@ export function Toolbar({
       <ImportModal ref={importRef} onClose={() => importRef.current?.close()} onImport={onImport} />
       <AddEntityModal
         ref={addEntityRef}
+        existingEntityIds={entities.map(entity => entity.id)}
         onClose={() => addEntityRef.current?.close()}
         onAdd={onAddEntity}
+      />
+      <AddActorModal
+        ref={addActorRef}
+        existingActorIds={actors.map(actor => actor.id)}
+        onClose={() => addActorRef.current?.close()}
+        onAdd={onAddActor}
       />
       <AddRelationshipModal
         ref={addRelRef}
         entities={entities}
+        existingRelationshipIds={relationshipIds}
         onClose={() => addRelRef.current?.close()}
         onAdd={onAddRelationship}
       />
@@ -143,14 +170,24 @@ export function Toolbar({
         ref={addUcRef}
         entities={entities}
         actors={actors}
+        existingUseCaseIds={useCases.map(useCase => useCase.id)}
         onClose={() => addUcRef.current?.close()}
         onAdd={onAddUseCase}
       />
       <AddEndpointModal
         ref={addEpRef}
         useCases={useCases}
+        entities={entities}
+        existingEndpointIds={endpointIds}
         onClose={() => addEpRef.current?.close()}
         onAdd={onAddEndpoint}
+      />
+      <AddRuleModal
+        ref={addRuleRef}
+        entities={entities}
+        existingRuleIds={ruleIds}
+        onClose={() => addRuleRef.current?.close()}
+        onAdd={onAddRule}
       />
       <ConfirmDialog
         ref={confirmRef}

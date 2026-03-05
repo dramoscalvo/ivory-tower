@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { screen } from '@testing-library/react';
+import { within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { App } from '../../../../../src/ui/components/App/App';
 import { renderWithProviders } from '../../../../helpers/renderWithProviders';
@@ -123,5 +124,58 @@ describe('App', () => {
       renderWithProviders(<App />);
       expect(screen.getByRole('button', { name: /Add/i })).toBeInTheDocument();
     });
+
+    it('imports architecture and use cases from a single JSON payload', async () => {
+      const user = userEvent.setup();
+      renderWithProviders(<App />);
+
+      const payload = JSON.stringify(
+        {
+          title: 'Imported System',
+          entities: [
+            {
+              id: 'account',
+              name: 'Account',
+              type: 'class',
+              methods: [{ name: 'open', parameters: [], returnType: { name: 'void' } }],
+            },
+          ],
+          relationships: [],
+          useCases: [
+            {
+              id: 'uc-open-account',
+              name: 'Open Account',
+              entityRef: 'account',
+              methodRef: 'open',
+              scenarios: [
+                {
+                  name: 'Happy path',
+                  steps: [
+                    { keyword: 'Given', text: 'a valid request' },
+                    { keyword: 'When', text: 'open is called' },
+                    { keyword: 'Then', text: 'account is opened' },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+        null,
+        2,
+      );
+
+      await user.click(screen.getByRole('button', { name: /^Import$/i }));
+      const dialog = screen.getByRole('dialog');
+      const textarea = within(dialog).getByPlaceholderText(
+        /Paste Mermaid, PlantUML, JSON, or TOON/i,
+      );
+      await user.click(textarea);
+      await user.paste(payload);
+      await user.click(within(dialog).getByRole('button', { name: /^Import$/i }));
+
+      expect(screen.getByText('Imported System')).toBeInTheDocument();
+      await user.click(screen.getByRole('tab', { name: /Use Cases/i }));
+      expect(screen.getAllByText('Open Account').length).toBeGreaterThanOrEqual(1);
+    }, 10000);
   });
 });

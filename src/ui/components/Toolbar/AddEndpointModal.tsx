@@ -1,6 +1,7 @@
 import { forwardRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { HttpMethod, AuthType } from '../../../diagram/domain/models/Endpoint';
+import { buildEndpointId } from './idGenerator';
 import styles from './QuickAddModal.module.css';
 
 const HTTP_METHODS: HttpMethod[] = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'];
@@ -10,28 +11,35 @@ interface UseCaseOption {
   name: string;
 }
 
+interface EntityOption {
+  id: string;
+  name: string;
+  fieldNames: string[];
+}
+
 interface AddEndpointModalProps {
   useCases: UseCaseOption[];
+  entities: EntityOption[];
+  existingEndpointIds: string[];
   onClose: () => void;
   onAdd: (endpointJson: string) => void;
 }
 
-function toKebabCase(text: string): string {
-  return text
-    .replace(/([a-z])([A-Z])/g, '$1-$2')
-    .replace(/[\s_]+/g, '-')
-    .replace(/[^a-z0-9-]/gi, '')
-    .toLowerCase();
-}
-
 export const AddEndpointModal = forwardRef<HTMLDialogElement, AddEndpointModalProps>(
-  function AddEndpointModal({ useCases, onClose, onAdd }, ref) {
+  function AddEndpointModal({ useCases, entities, existingEndpointIds, onClose, onAdd }, ref) {
     const { t } = useTranslation();
     const [method, setMethod] = useState<HttpMethod>('GET');
     const [path, setPath] = useState('');
     const [summary, setSummary] = useState('');
     const [auth, setAuth] = useState<AuthType>('authenticated');
     const [useCaseRef, setUseCaseRef] = useState('');
+    const [requestEntityRef, setRequestEntityRef] = useState('');
+    const [responseEntityRef, setResponseEntityRef] = useState('');
+    const [requestFields, setRequestFields] = useState<string[]>([]);
+    const [responseFields, setResponseFields] = useState<string[]>([]);
+
+    const requestEntity = entities.find(entity => entity.id === requestEntityRef);
+    const responseEntity = entities.find(entity => entity.id === responseEntityRef);
 
     const authTypes: { value: AuthType; label: string }[] = [
       { value: 'public', label: t('addEndpointModal.authPublic') },
@@ -48,7 +56,7 @@ export const AddEndpointModal = forwardRef<HTMLDialogElement, AddEndpointModalPr
       if (!trimmedPath) return;
 
       const endpoint: Record<string, unknown> = {
-        id: `ep-${toKebabCase(trimmedPath.replace(/^\/api\//, ''))}`,
+        id: buildEndpointId(method, trimmedPath, existingEndpointIds),
         method,
         path: trimmedPath,
       };
@@ -56,6 +64,18 @@ export const AddEndpointModal = forwardRef<HTMLDialogElement, AddEndpointModalPr
       if (summary.trim()) endpoint.summary = summary.trim();
       endpoint.auth = auth;
       if (useCaseRef) endpoint.useCaseRef = useCaseRef;
+      if (requestEntityRef) {
+        endpoint.requestBody = {
+          entityRef: requestEntityRef,
+          ...(requestFields.length > 0 ? { fields: requestFields } : {}),
+        };
+      }
+      if (responseEntityRef) {
+        endpoint.response = {
+          entityRef: responseEntityRef,
+          ...(responseFields.length > 0 ? { fields: responseFields } : {}),
+        };
+      }
 
       onAdd(JSON.stringify(endpoint, null, 2));
       setMethod('GET');
@@ -63,6 +83,10 @@ export const AddEndpointModal = forwardRef<HTMLDialogElement, AddEndpointModalPr
       setSummary('');
       setAuth('authenticated');
       setUseCaseRef('');
+      setRequestEntityRef('');
+      setResponseEntityRef('');
+      setRequestFields([]);
+      setResponseFields([]);
       onClose();
     };
 
@@ -150,6 +174,88 @@ export const AddEndpointModal = forwardRef<HTMLDialogElement, AddEndpointModalPr
               </div>
             )}
           </div>
+          <div className={styles.row}>
+            <div className={styles.field}>
+              <label className={styles.label}>{t('addEndpointModal.requestEntityLabel')}</label>
+              <select
+                className={styles.select}
+                value={requestEntityRef}
+                onChange={e => {
+                  setRequestEntityRef(e.target.value);
+                  setRequestFields([]);
+                }}
+              >
+                <option value="">{t('addEndpointModal.noneOption')}</option>
+                {entities.map(entity => (
+                  <option key={entity.id} value={entity.id}>
+                    {entity.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className={styles.field}>
+              <label className={styles.label}>{t('addEndpointModal.responseEntityLabel')}</label>
+              <select
+                className={styles.select}
+                value={responseEntityRef}
+                onChange={e => {
+                  setResponseEntityRef(e.target.value);
+                  setResponseFields([]);
+                }}
+              >
+                <option value="">{t('addEndpointModal.noneOption')}</option>
+                {entities.map(entity => (
+                  <option key={entity.id} value={entity.id}>
+                    {entity.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          {(requestEntityRef || responseEntityRef) && (
+            <div className={styles.row}>
+              <div className={styles.field}>
+                <label className={styles.label}>{t('addEndpointModal.requestFieldsLabel')}</label>
+                <select
+                  className={styles.select}
+                  multiple
+                  value={requestFields}
+                  onChange={e => {
+                    const values = Array.from(e.target.selectedOptions).map(option => option.value);
+                    setRequestFields(values);
+                  }}
+                  size={Math.min(Math.max(requestEntity?.fieldNames.length ?? 1, 1), 5)}
+                  disabled={!requestEntityRef || (requestEntity?.fieldNames.length ?? 0) === 0}
+                >
+                  {(requestEntity?.fieldNames ?? []).map(fieldName => (
+                    <option key={fieldName} value={fieldName}>
+                      {fieldName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className={styles.field}>
+                <label className={styles.label}>{t('addEndpointModal.responseFieldsLabel')}</label>
+                <select
+                  className={styles.select}
+                  multiple
+                  value={responseFields}
+                  onChange={e => {
+                    const values = Array.from(e.target.selectedOptions).map(option => option.value);
+                    setResponseFields(values);
+                  }}
+                  size={Math.min(Math.max(responseEntity?.fieldNames.length ?? 1, 1), 5)}
+                  disabled={!responseEntityRef || (responseEntity?.fieldNames.length ?? 0) === 0}
+                >
+                  {(responseEntity?.fieldNames ?? []).map(fieldName => (
+                    <option key={fieldName} value={fieldName}>
+                      {fieldName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          )}
           <div className={styles.footer}>
             <button
               type="button"

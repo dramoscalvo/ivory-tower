@@ -58,8 +58,14 @@ function computeCoverage(diagram: UMLDiagram): EntityCoverage[] {
   });
 }
 
-function getCoverageLevel(coverage: EntityCoverage): 'full' | 'partial' | 'none' {
+function getCoverageLevel(
+  coverage: EntityCoverage,
+  requireRules: boolean,
+): 'full' | 'partial' | 'none' {
   const checks = [coverage.useCaseCount > 0, coverage.endpointCount > 0, coverage.hasRelationships];
+  if (requireRules) {
+    checks.push(coverage.ruleCount > 0);
+  }
   const passed = checks.filter(Boolean).length;
   if (passed === checks.length) return 'full';
   if (passed > 0) return 'partial';
@@ -87,7 +93,8 @@ export function CoveragePanel({ diagram, warnings }: CoveragePanelProps) {
   }
 
   const coverages = computeCoverage(diagram);
-  const fullCount = coverages.filter(c => getCoverageLevel(c) === 'full').length;
+  const requireRules = (diagram.rules?.length ?? 0) > 0;
+  const fullCount = coverages.filter(c => getCoverageLevel(c, requireRules) === 'full').length;
   const percentage = Math.round((fullCount / coverages.length) * 100);
 
   return (
@@ -103,12 +110,12 @@ export function CoveragePanel({ diagram, warnings }: CoveragePanelProps) {
           </span>
           <span className={styles.countPartial}>
             {t('coveragePanel.countPartial', {
-              count: coverages.filter(c => getCoverageLevel(c) === 'partial').length,
+              count: coverages.filter(c => getCoverageLevel(c, requireRules) === 'partial').length,
             })}
           </span>
           <span className={styles.countNone}>
             {t('coveragePanel.countNone', {
-              count: coverages.filter(c => getCoverageLevel(c) === 'none').length,
+              count: coverages.filter(c => getCoverageLevel(c, requireRules) === 'none').length,
             })}
           </span>
         </div>
@@ -128,7 +135,7 @@ export function CoveragePanel({ diagram, warnings }: CoveragePanelProps) {
           </thead>
           <tbody>
             {coverages.map(coverage => {
-              const level = getCoverageLevel(coverage);
+              const level = getCoverageLevel(coverage, requireRules);
               return (
                 <tr key={coverage.entityId} className={styles[level]}>
                   <td className={styles.entityName}>{coverage.entityName}</td>

@@ -34,6 +34,7 @@ export const UmlCanvas = forwardRef<UmlCanvasHandle, UmlCanvasProps>(function Um
   const [panStart, setPanStart] = useState({ x: 0, y: 0 });
   const [searchQuery, setSearchQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
+  const [selectedSearchIndex, setSelectedSearchIndex] = useState(0);
   const [highlightedEntityId, setHighlightedEntityId] = useState<string | null>(null);
   const [hoveredEntityId, setHoveredEntityId] = useState<string | null>(null);
 
@@ -122,6 +123,7 @@ export const UmlCanvas = forwardRef<UmlCanvasHandle, UmlCanvasProps>(function Um
     setHighlightedEntityId(entityId);
     setSearchOpen(false);
     setSearchQuery('');
+    setSelectedSearchIndex(0);
 
     // Clear highlight after animation
     setTimeout(() => setHighlightedEntityId(null), 2000);
@@ -132,6 +134,15 @@ export const UmlCanvas = forwardRef<UmlCanvasHandle, UmlCanvasProps>(function Um
         e.entity.name.toLowerCase().includes(searchQuery.toLowerCase()),
       )
     : [];
+
+  useEffect(() => {
+    if (!searchOpen || searchResults.length === 0) {
+      setSelectedSearchIndex(0);
+      return;
+    }
+
+    setSelectedSearchIndex(currentIndex => Math.min(currentIndex, searchResults.length - 1));
+  }, [searchOpen, searchResults.length]);
 
   useImperativeHandle(ref, () => ({
     fitToView,
@@ -225,20 +236,37 @@ export const UmlCanvas = forwardRef<UmlCanvasHandle, UmlCanvasProps>(function Um
               if (e.key === 'Escape') {
                 setSearchOpen(false);
                 setSearchQuery('');
+                setSelectedSearchIndex(0);
+              } else if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (searchResults.length > 0) {
+                  setSelectedSearchIndex(index => (index + 1) % searchResults.length);
+                }
+              } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (searchResults.length > 0) {
+                  setSelectedSearchIndex(index =>
+                    index === 0 ? searchResults.length - 1 : index - 1,
+                  );
+                }
               } else if (e.key === 'Enter' && searchResults.length > 0) {
-                zoomToEntity(searchResults[0].entity.id);
+                const selectedResult = searchResults[selectedSearchIndex] ?? searchResults[0];
+                zoomToEntity(selectedResult.entity.id);
               }
             }}
             placeholder="Search entities..."
             autoFocus
           />
           {searchResults.length > 0 && (
-            <ul className={styles.searchResults}>
-              {searchResults.map(el => (
+            <ul className={styles.searchResults} role="listbox" aria-label="Entity search results">
+              {searchResults.map((el, index) => (
                 <li key={el.entity.id}>
                   <button
-                    className={styles.searchResult}
+                    className={`${styles.searchResult} ${index === selectedSearchIndex ? styles.searchResultActive : ''}`}
                     onClick={() => zoomToEntity(el.entity.id)}
+                    onMouseEnter={() => setSelectedSearchIndex(index)}
+                    role="option"
+                    aria-selected={index === selectedSearchIndex}
                     type="button"
                   >
                     {el.entity.name}
@@ -256,7 +284,10 @@ export const UmlCanvas = forwardRef<UmlCanvasHandle, UmlCanvasProps>(function Um
           className={styles.controlButton}
           onClick={() => {
             setSearchOpen(prev => !prev);
-            if (!searchOpen) setTimeout(() => searchRef.current?.focus(), 0);
+            if (!searchOpen) {
+              setSelectedSearchIndex(0);
+              setTimeout(() => searchRef.current?.focus(), 0);
+            }
           }}
           title="Search entities"
           aria-label="Search entities"

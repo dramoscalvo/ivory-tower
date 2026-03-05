@@ -18,13 +18,24 @@ const defaultProps = {
   shareStatus: 'idle' as const,
   onImport: () => {},
   onExportSvg: () => {},
-  entities: [] as { id: string; name: string; methods?: { name: string }[] }[],
+  entities: [] as {
+    id: string;
+    name: string;
+    methods?: { name: string }[];
+    functions?: { name: string }[];
+    fieldNames: string[];
+  }[],
   actors: [] as { id: string; name: string }[],
   useCases: [] as { id: string; name: string }[],
+  relationshipIds: [] as string[],
+  endpointIds: [] as string[],
+  ruleIds: [] as string[],
   onAddEntity: () => {},
+  onAddActor: () => {},
   onAddRelationship: () => {},
   onAddUseCase: () => {},
   onAddEndpoint: () => {},
+  onAddRule: () => {},
 };
 
 describe('Toolbar', () => {
@@ -168,9 +179,11 @@ describe('Toolbar', () => {
       await user.click(screen.getByRole('button', { name: /Add/i }));
 
       expect(screen.getByRole('menuitem', { name: /\+ Entity/i })).toBeInTheDocument();
+      expect(screen.getByRole('menuitem', { name: /\+ Actor/i })).toBeInTheDocument();
       expect(screen.getByRole('menuitem', { name: /\+ Relationship/i })).toBeInTheDocument();
       expect(screen.getByRole('menuitem', { name: /\+ Use Case/i })).toBeInTheDocument();
       expect(screen.getByRole('menuitem', { name: /\+ Endpoint/i })).toBeInTheDocument();
+      expect(screen.getByRole('menuitem', { name: /\+ Rule/i })).toBeInTheDocument();
     });
 
     it('+ Relationship is disabled when fewer than 2 entities', async () => {
@@ -184,8 +197,8 @@ describe('Toolbar', () => {
     it('+ Relationship is enabled when 2 or more entities', async () => {
       const user = userEvent.setup();
       const entities = [
-        { id: 'a', name: 'A' },
-        { id: 'b', name: 'B' },
+        { id: 'a', name: 'A', fieldNames: [] },
+        { id: 'b', name: 'B', fieldNames: [] },
       ];
       renderWithProviders(<Toolbar {...defaultProps} entities={entities} />);
 
@@ -199,6 +212,14 @@ describe('Toolbar', () => {
 
       await user.click(screen.getByRole('button', { name: /Add/i }));
       expect(screen.getByRole('menuitem', { name: /\+ Use Case/i })).toBeDisabled();
+    });
+
+    it('+ Rule is disabled when no entities', async () => {
+      const user = userEvent.setup();
+      renderWithProviders(<Toolbar {...defaultProps} entities={[]} />);
+
+      await user.click(screen.getByRole('button', { name: /Add/i }));
+      expect(screen.getByRole('menuitem', { name: /\+ Rule/i })).toBeDisabled();
     });
 
     it('closes dropdown after selecting an item', async () => {

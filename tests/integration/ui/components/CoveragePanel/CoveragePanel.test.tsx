@@ -68,6 +68,33 @@ describe('CoveragePanel', () => {
       expect(screen.getByText('1 partial')).toBeInTheDocument();
       expect(screen.getByText('1 none')).toBeInTheDocument();
     });
+
+    it('includes rules in full coverage checks when rules are defined', () => {
+      const diagram = makeDiagram({
+        entities: [
+          { id: 'e1', name: 'User', type: 'class' },
+          { id: 'e2', name: 'Order', type: 'class' },
+        ],
+        relationships: [{ id: 'r1', type: 'association', sourceId: 'e1', targetId: 'e2' }],
+        useCases: [
+          { id: 'uc1', name: 'Manage User', entityRef: 'e1', scenarios: [] },
+          { id: 'uc2', name: 'Manage Order', entityRef: 'e2', scenarios: [] },
+        ],
+        endpoints: [
+          { id: 'ep1', method: 'GET', path: '/users', response: { entityRef: 'e1' } },
+          { id: 'ep2', method: 'GET', path: '/orders', response: { entityRef: 'e2' } },
+        ],
+        rules: [{ id: 'ru1', entityRef: 'e1', type: 'validation', description: 'Valid user data' }],
+      });
+
+      render(<CoveragePanel diagram={diagram} warnings={[]} />);
+
+      // Rules exist globally, so only e1 can be full.
+      expect(screen.getByText('50%')).toBeInTheDocument();
+      expect(screen.getByText('1 full')).toBeInTheDocument();
+      expect(screen.getByText('1 partial')).toBeInTheDocument();
+      expect(screen.getByText('0 none')).toBeInTheDocument();
+    });
   });
 
   describe('entity coverage table', () => {

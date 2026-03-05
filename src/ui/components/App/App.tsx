@@ -22,6 +22,7 @@ import type { CompletenessWarning } from '../../../diagram/domain/services/Compl
 import type { Actor } from '../../../diagram/domain/models/Actor';
 import type { VsCodeMessage } from '../../../vscode/vscodeApi';
 import type { FontSize, JsonEditorHandle } from '../JsonEditor/JsonEditor';
+import type { ImportResult } from '../Toolbar/ImportModal';
 import type { UmlCanvasHandle } from '../UmlCanvas/UmlCanvas';
 import styles from './App.module.css';
 
@@ -163,7 +164,6 @@ const FONT_SIZES: FontSize[] = ['xs', 'sm', 'base', 'md', 'lg'];
 function isValidFontSize(value: string | null): value is FontSize {
   return value !== null && FONT_SIZES.includes(value as FontSize);
 }
-
 
 export function App() {
   const { diagramService, exportService } = useServices();
@@ -315,6 +315,93 @@ export function App() {
   let archValidationErrors: ValidationError[] = [];
   let useCasesValidationErrors: ValidationError[] = [];
   let completenessWarnings: CompletenessWarning[] = [];
+  let toolbarEntities: {
+    id: string;
+    name: string;
+    methods?: { name: string }[];
+    functions?: { name: string }[];
+    fieldNames: string[];
+  }[] = [];
+  let toolbarActors: { id: string; name: string }[] = [];
+  let toolbarUseCases: { id: string; name: string }[] = [];
+  let relationshipIds: string[] = [];
+  let endpointIds: string[] = [];
+  let ruleIds: string[] = [];
+
+  if (!archParseError) {
+    try {
+      const parsedArchitecture = JSON.parse(architectureJson) as Record<string, unknown>;
+      toolbarEntities = Array.isArray(parsedArchitecture.entities)
+        ? parsedArchitecture.entities
+            .map(entity => entity as Record<string, unknown>)
+            .filter(entity => typeof entity.id === 'string' && typeof entity.name === 'string')
+            .map(entity => ({
+              id: entity.id as string,
+              name: entity.name as string,
+              methods: Array.isArray(entity.methods)
+                ? entity.methods
+                    .map(method => method as Record<string, unknown>)
+                    .filter(method => typeof method.name === 'string')
+                    .map(method => ({ name: method.name as string }))
+                : [],
+              functions: Array.isArray(entity.functions)
+                ? entity.functions
+                    .map(fn => fn as Record<string, unknown>)
+                    .filter(fn => typeof fn.name === 'string')
+                    .map(fn => ({ name: fn.name as string }))
+                : [],
+              fieldNames: [
+                ...(Array.isArray(entity.attributes)
+                  ? entity.attributes
+                      .map(attribute => attribute as Record<string, unknown>)
+                      .filter(attribute => typeof attribute.name === 'string')
+                      .map(attribute => attribute.name as string)
+                  : []),
+                ...(Array.isArray(entity.values)
+                  ? entity.values.filter((value): value is string => typeof value === 'string')
+                  : []),
+              ],
+            }))
+        : [];
+      toolbarActors = Array.isArray(parsedArchitecture.actors)
+        ? parsedArchitecture.actors
+            .map(actor => actor as Record<string, unknown>)
+            .filter(actor => typeof actor.id === 'string' && typeof actor.name === 'string')
+            .map(actor => ({ id: actor.id as string, name: actor.name as string }))
+        : [];
+      relationshipIds = Array.isArray(parsedArchitecture.relationships)
+        ? parsedArchitecture.relationships
+            .map(relationship => (relationship as { id?: unknown }).id)
+            .filter((id): id is string => typeof id === 'string')
+        : [];
+      endpointIds = Array.isArray(parsedArchitecture.endpoints)
+        ? parsedArchitecture.endpoints
+            .map(endpoint => (endpoint as { id?: unknown }).id)
+            .filter((id): id is string => typeof id === 'string')
+        : [];
+      ruleIds = Array.isArray(parsedArchitecture.rules)
+        ? parsedArchitecture.rules
+            .map(rule => (rule as { id?: unknown }).id)
+            .filter((id): id is string => typeof id === 'string')
+        : [];
+    } catch {
+      // ignore
+    }
+  }
+
+  if (!useCasesParseError) {
+    try {
+      const parsedUseCases = JSON.parse(useCasesJson);
+      toolbarUseCases = Array.isArray(parsedUseCases)
+        ? parsedUseCases
+            .map(useCase => useCase as Record<string, unknown>)
+            .filter(useCase => typeof useCase.id === 'string' && typeof useCase.name === 'string')
+            .map(useCase => ({ id: useCase.id as string, name: useCase.name as string }))
+        : [];
+    } catch {
+      // ignore
+    }
+  }
 
   if (!archParseError && !useCasesParseError) {
     try {
@@ -378,8 +465,11 @@ export function App() {
     handleUseCasesJsonChange(EXAMPLE_USECASES_JSON, true);
   };
 
-  const handleImport = (json: string) => {
-    handleArchitectureJsonChange(json, true);
+  const handleImport = (payload: ImportResult) => {
+    handleArchitectureJsonChange(payload.architectureJson, true);
+    if (payload.useCasesJson !== null) {
+      handleUseCasesJsonChange(payload.useCasesJson, true);
+    }
   };
 
   const handleAddEntity = (entityJson: string) => {
@@ -404,6 +494,17 @@ export function App() {
     }
   };
 
+  const handleAddActor = (actorJson: string) => {
+    try {
+      const arch = JSON.parse(architectureJson);
+      const actor = JSON.parse(actorJson);
+      arch.actors = [...(arch.actors ?? []), actor];
+      handleArchitectureJsonChange(JSON.stringify(arch, null, 2), true);
+    } catch {
+      // parse failed
+    }
+  };
+
   const handleAddUseCase = (ucJson: string) => {
     try {
       const ucArray = JSON.parse(useCasesJson);
@@ -422,6 +523,17 @@ export function App() {
       const arch = JSON.parse(architectureJson);
       const ep = JSON.parse(epJson);
       arch.endpoints = [...(arch.endpoints ?? []), ep];
+      handleArchitectureJsonChange(JSON.stringify(arch, null, 2), true);
+    } catch {
+      // parse failed
+    }
+  };
+
+  const handleAddRule = (ruleJson: string) => {
+    try {
+      const arch = JSON.parse(architectureJson);
+      const rule = JSON.parse(ruleJson);
+      arch.rules = [...(arch.rules ?? []), rule];
       handleArchitectureJsonChange(JSON.stringify(arch, null, 2), true);
     } catch {
       // parse failed
@@ -546,13 +658,18 @@ export function App() {
             shareStatus={shareStatus}
             onImport={handleImport}
             onExportSvg={handleExportSvg}
-            entities={entities}
-            actors={actors}
-            useCases={useCases}
+            entities={toolbarEntities}
+            actors={toolbarActors}
+            useCases={toolbarUseCases}
+            relationshipIds={relationshipIds}
+            endpointIds={endpointIds}
+            ruleIds={ruleIds}
             onAddEntity={handleAddEntity}
+            onAddActor={handleAddActor}
             onAddRelationship={handleAddRelationship}
             onAddUseCase={handleAddUseCase}
             onAddEndpoint={handleAddEndpoint}
+            onAddRule={handleAddRule}
           />
         }
         architectureEditor={

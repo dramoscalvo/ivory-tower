@@ -30,7 +30,7 @@ Write your architecture in JSON, see it rendered as an interactive UML diagram, 
 **Editing**
 - Live preview — diagram updates as you type
 - JSON schema validation with inline error messages
-- Quick-add forms: + Entity, + Relationship, + Use Case, + Endpoint
+- Quick-add forms: + Entity, + Actor, + Relationship, + Use Case, + Endpoint, + Rule
 - Undo/redo (Ctrl+Z / Ctrl+Shift+Z)
 - Prettify JSON (Ctrl+Shift+F)
 - Local persistence (auto-saved to browser storage)

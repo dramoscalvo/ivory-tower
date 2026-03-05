@@ -1,6 +1,7 @@
 import { forwardRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { RelationshipType, Cardinality } from '../../../diagram/domain/models/Relationship';
+import { buildRelationshipId } from './idGenerator';
 import styles from './QuickAddModal.module.css';
 
 interface EntityOption {
@@ -10,12 +11,13 @@ interface EntityOption {
 
 interface AddRelationshipModalProps {
   entities: EntityOption[];
+  existingRelationshipIds: string[];
   onClose: () => void;
   onAdd: (relationshipJson: string) => void;
 }
 
 export const AddRelationshipModal = forwardRef<HTMLDialogElement, AddRelationshipModalProps>(
-  function AddRelationshipModal({ entities, onClose, onAdd }, ref) {
+  function AddRelationshipModal({ entities, existingRelationshipIds, onClose, onAdd }, ref) {
     const { t } = useTranslation();
     const [sourceId, setSourceId] = useState('');
     const [targetId, setTargetId] = useState('');
@@ -50,7 +52,7 @@ export const AddRelationshipModal = forwardRef<HTMLDialogElement, AddRelationshi
       if (!sourceId || !targetId) return;
 
       const relationship: Record<string, unknown> = {
-        id: `r-${sourceId}-${targetId}`,
+        id: buildRelationshipId(type, sourceId, targetId, existingRelationshipIds),
         type,
         sourceId,
         targetId,

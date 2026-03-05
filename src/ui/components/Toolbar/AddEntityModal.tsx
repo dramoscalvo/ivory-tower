@@ -1,26 +1,23 @@
 import { forwardRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { EntityType } from '../../../diagram/domain/models/Entity';
+import { buildEntityId } from './idGenerator';
 import styles from './QuickAddModal.module.css';
 
-function toKebabCase(name: string): string {
-  return name
-    .replace(/([a-z])([A-Z])/g, '$1-$2')
-    .replace(/[\s_]+/g, '-')
-    .toLowerCase();
-}
-
 interface AddEntityModalProps {
+  existingEntityIds: string[];
   onClose: () => void;
   onAdd: (entityJson: string) => void;
 }
 
 export const AddEntityModal = forwardRef<HTMLDialogElement, AddEntityModalProps>(
-  function AddEntityModal({ onClose, onAdd }, ref) {
+  function AddEntityModal({ existingEntityIds, onClose, onAdd }, ref) {
     const { t } = useTranslation();
     const [name, setName] = useState('');
     const [type, setType] = useState<EntityType>('class');
     const [description, setDescription] = useState('');
+    const [enumValues, setEnumValues] = useState('VALUE_1, VALUE_2');
+    const [includeStarterMembers, setIncludeStarterMembers] = useState(false);
 
     const entityTypes: { value: EntityType; label: string }[] = [
       { value: 'class', label: t('addEntityModal.typeClass') },
@@ -40,7 +37,7 @@ export const AddEntityModal = forwardRef<HTMLDialogElement, AddEntityModalProps>
       if (!trimmedName) return;
 
       const entity: Record<string, unknown> = {
-        id: toKebabCase(trimmedName),
+        id: buildEntityId(trimmedName, existingEntityIds),
         name: trimmedName,
         type,
       };
@@ -50,18 +47,34 @@ export const AddEntityModal = forwardRef<HTMLDialogElement, AddEntityModalProps>
       }
 
       if (type === 'enum') {
-        entity.values = ['VALUE_1', 'VALUE_2'];
+        const parsedValues = enumValues
+          .split(/[\n,]+/)
+          .map(value => value.trim())
+          .filter(Boolean);
+        entity.values = parsedValues.length > 0 ? parsedValues : ['VALUE_1', 'VALUE_2'];
       } else if (type === 'class' || type === 'abstract-class' || type === 'interface') {
-        entity.attributes = [];
-        entity.methods = [];
+        entity.attributes = includeStarterMembers
+          ? [{ name: 'id', type: { name: 'string' }, visibility: 'private' }]
+          : [];
+        entity.methods = includeStarterMembers
+          ? [{ name: 'execute', parameters: [], returnType: { name: 'void' }, visibility: 'public' }]
+          : [];
       } else if (type === 'module') {
-        entity.functions = [];
+        entity.functions = includeStarterMembers
+          ? [{ name: 'run', parameters: [], returnType: { name: 'void' }, isExported: true }]
+          : [];
+      } else if (type === 'type') {
+        entity.types = includeStarterMembers
+          ? [{ name: 'Value', definition: '{ id: string }', isExported: true }]
+          : [];
       }
 
       onAdd(JSON.stringify(entity, null, 2));
       setName('');
       setType('class');
       setDescription('');
+      setEnumValues('VALUE_1, VALUE_2');
+      setIncludeStarterMembers(false);
       onClose();
     };
 
@@ -97,7 +110,10 @@ export const AddEntityModal = forwardRef<HTMLDialogElement, AddEntityModalProps>
               <select
                 className={styles.select}
                 value={type}
-                onChange={e => setType(e.target.value as EntityType)}
+                onChange={e => {
+                  setType(e.target.value as EntityType);
+                  setIncludeStarterMembers(false);
+                }}
               >
                 {entityTypes.map(option => (
                   <option key={option.value} value={option.value}>
@@ -107,6 +123,28 @@ export const AddEntityModal = forwardRef<HTMLDialogElement, AddEntityModalProps>
               </select>
             </div>
           </div>
+          {type === 'enum' ? (
+            <div className={styles.field}>
+              <label className={styles.label}>{t('addEntityModal.valuesLabel')}</label>
+              <textarea
+                className={styles.textarea}
+                value={enumValues}
+                onChange={e => setEnumValues(e.target.value)}
+                placeholder={t('addEntityModal.valuesPlaceholder')}
+                rows={2}
+              />
+            </div>
+          ) : (
+            <label className={styles.checkboxRow}>
+              <input
+                className={styles.checkbox}
+                type="checkbox"
+                checked={includeStarterMembers}
+                onChange={e => setIncludeStarterMembers(e.target.checked)}
+              />
+              {t('addEntityModal.includeStarterMembers')}
+            </label>
+          )}
           <div className={styles.field}>
             <label className={styles.label}>{t('addEntityModal.descriptionLabel')}</label>
             <textarea

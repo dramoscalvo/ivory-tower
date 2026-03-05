@@ -1,11 +1,13 @@
 import { forwardRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { buildUseCaseId } from './idGenerator';
 import styles from './QuickAddModal.module.css';
 
 interface EntityOption {
   id: string;
   name: string;
   methods?: { name: string }[];
+  functions?: { name: string }[];
 }
 
 interface ActorOption {
@@ -16,31 +18,79 @@ interface ActorOption {
 interface AddUseCaseModalProps {
   entities: EntityOption[];
   actors: ActorOption[];
+  existingUseCaseIds: string[];
   onClose: () => void;
   onAdd: (useCaseJson: string) => void;
 }
 
-function toKebabCase(name: string): string {
-  return name
-    .replace(/([a-z])([A-Z])/g, '$1-$2')
-    .replace(/[\s_]+/g, '-')
-    .toLowerCase();
+interface ScenarioDraft {
+  name: string;
+  given: string;
+  when: string;
+  then: string;
 }
 
 export const AddUseCaseModal = forwardRef<HTMLDialogElement, AddUseCaseModalProps>(
-  function AddUseCaseModal({ entities, actors, onClose, onAdd }, ref) {
+  function AddUseCaseModal({ entities, actors, existingUseCaseIds, onClose, onAdd }, ref) {
     const { t } = useTranslation();
     const [name, setName] = useState('');
     const [entityRef, setEntityRef] = useState('');
     const [methodRef, setMethodRef] = useState('');
     const [actorRef, setActorRef] = useState('');
     const [description, setDescription] = useState('');
+    const [preconditionsText, setPreconditionsText] = useState('');
+    const [postconditionsText, setPostconditionsText] = useState('');
+    const [scenarios, setScenarios] = useState<ScenarioDraft[]>([
+      {
+        name: t('addUseCaseModal.scenarioName'),
+        given: t('addUseCaseModal.stepGiven'),
+        when: t('addUseCaseModal.stepWhenDefault'),
+        then: t('addUseCaseModal.stepThen'),
+      },
+    ]);
 
     const selectedEntity = entities.find(e => e.id === entityRef);
-    const methods = selectedEntity?.methods ?? [];
+    const memberNames = [
+      ...(selectedEntity?.methods ?? []).map(method => method.name),
+      ...(selectedEntity?.functions ?? []).map(fn => fn.name),
+    ];
 
     const handleBackdropClick = (e: React.MouseEvent<HTMLDialogElement>) => {
       if (e.target === e.currentTarget) onClose();
+    };
+
+    const parseConditions = (rawText: string): string[] =>
+      rawText
+        .split('\n')
+        .map(condition => condition.trim())
+        .filter(Boolean);
+
+    const updateScenario = (
+      index: number,
+      field: keyof ScenarioDraft,
+      value: string,
+    ) => {
+      setScenarios(prev =>
+        prev.map((scenario, scenarioIndex) =>
+          scenarioIndex === index ? { ...scenario, [field]: value } : scenario,
+        ),
+      );
+    };
+
+    const addScenario = () => {
+      setScenarios(prev => [
+        ...prev,
+        {
+          name: `${t('addUseCaseModal.scenarioName')} ${prev.length + 1}`,
+          given: t('addUseCaseModal.stepGiven'),
+          when: t('addUseCaseModal.stepWhenDefault'),
+          then: t('addUseCaseModal.stepThen'),
+        },
+      ]);
+    };
+
+    const removeScenario = (index: number) => {
+      setScenarios(prev => prev.filter((_, scenarioIndex) => scenarioIndex !== index));
     };
 
     const handleSubmit = () => {
@@ -48,24 +98,31 @@ export const AddUseCaseModal = forwardRef<HTMLDialogElement, AddUseCaseModalProp
       if (!trimmedName || !entityRef) return;
 
       const useCase: Record<string, unknown> = {
-        id: `uc-${toKebabCase(trimmedName)}`,
+        id: buildUseCaseId(trimmedName, existingUseCaseIds),
         name: trimmedName,
         entityRef,
-        scenarios: [
-          {
-            name: t('addUseCaseModal.scenarioName'),
-            steps: [
-              { keyword: 'Given', text: t('addUseCaseModal.stepGiven') },
-              { keyword: 'When', text: t('addUseCaseModal.stepWhen', { name: trimmedName }) },
-              { keyword: 'Then', text: t('addUseCaseModal.stepThen') },
-            ],
-          },
-        ],
+        scenarios: scenarios.map(scenario => ({
+          name: scenario.name.trim() || t('addUseCaseModal.scenarioName'),
+          steps: [
+            { keyword: 'Given', text: scenario.given.trim() || t('addUseCaseModal.stepGiven') },
+            {
+              keyword: 'When',
+              text:
+                scenario.when.trim() ||
+                t('addUseCaseModal.stepWhen', { name: trimmedName }),
+            },
+            { keyword: 'Then', text: scenario.then.trim() || t('addUseCaseModal.stepThen') },
+          ],
+        })),
       };
 
       if (methodRef) useCase.methodRef = methodRef;
       if (actorRef) useCase.actorRef = actorRef;
       if (description.trim()) useCase.description = description.trim();
+      const preconditions = parseConditions(preconditionsText);
+      if (preconditions.length > 0) useCase.preconditions = preconditions;
+      const postconditions = parseConditions(postconditionsText);
+      if (postconditions.length > 0) useCase.postconditions = postconditions;
 
       onAdd(JSON.stringify(useCase, null, 2));
       setName('');
@@ -73,6 +130,16 @@ export const AddUseCaseModal = forwardRef<HTMLDialogElement, AddUseCaseModalProp
       setMethodRef('');
       setActorRef('');
       setDescription('');
+      setPreconditionsText('');
+      setPostconditionsText('');
+      setScenarios([
+        {
+          name: t('addUseCaseModal.scenarioName'),
+          given: t('addUseCaseModal.stepGiven'),
+          when: t('addUseCaseModal.stepWhenDefault'),
+          then: t('addUseCaseModal.stepThen'),
+        },
+      ]);
       onClose();
     };
 
@@ -127,12 +194,12 @@ export const AddUseCaseModal = forwardRef<HTMLDialogElement, AddUseCaseModalProp
                 className={styles.select}
                 value={methodRef}
                 onChange={e => setMethodRef(e.target.value)}
-                disabled={methods.length === 0}
+                disabled={memberNames.length === 0}
               >
                 <option value="">{t('addUseCaseModal.noneOption')}</option>
-                {methods.map(m => (
-                  <option key={m.name} value={m.name}>
-                    {m.name}
+                {memberNames.map(memberName => (
+                  <option key={memberName} value={memberName}>
+                    {memberName}
                   </option>
                 ))}
               </select>
@@ -164,6 +231,83 @@ export const AddUseCaseModal = forwardRef<HTMLDialogElement, AddUseCaseModalProp
               placeholder={t('addUseCaseModal.descriptionPlaceholder')}
               rows={2}
             />
+          </div>
+          <div className={styles.field}>
+            <label className={styles.label}>{t('addUseCaseModal.preconditionsLabel')}</label>
+            <textarea
+              className={styles.textarea}
+              value={preconditionsText}
+              onChange={e => setPreconditionsText(e.target.value)}
+              placeholder={t('addUseCaseModal.conditionsPlaceholder')}
+              rows={2}
+            />
+          </div>
+          <div className={styles.field}>
+            <label className={styles.label}>{t('addUseCaseModal.postconditionsLabel')}</label>
+            <textarea
+              className={styles.textarea}
+              value={postconditionsText}
+              onChange={e => setPostconditionsText(e.target.value)}
+              placeholder={t('addUseCaseModal.conditionsPlaceholder')}
+              rows={2}
+            />
+          </div>
+          <div className={styles.field}>
+            <div className={styles.sectionHeaderRow}>
+              <label className={styles.label}>{t('addUseCaseModal.scenariosLabel')}</label>
+              <button
+                type="button"
+                className={styles.secondaryButton}
+                onClick={addScenario}
+              >
+                {t('addUseCaseModal.addScenario')}
+              </button>
+            </div>
+            <div className={styles.scenarioList}>
+              {scenarios.map((scenario, index) => (
+                <div key={index} className={styles.scenarioCard}>
+                  <div className={styles.scenarioHeader}>
+                    <input
+                      className={styles.input}
+                      value={scenario.name}
+                      onChange={e => updateScenario(index, 'name', e.target.value)}
+                      placeholder={t('addUseCaseModal.scenarioName')}
+                    />
+                    <button
+                      type="button"
+                      className={styles.iconButton}
+                      onClick={() => removeScenario(index)}
+                      disabled={scenarios.length === 1}
+                      aria-label={t('addUseCaseModal.removeScenario')}
+                    >
+                      ×
+                    </button>
+                  </div>
+                  <input
+                    className={styles.input}
+                    value={scenario.given}
+                    onChange={e => updateScenario(index, 'given', e.target.value)}
+                    placeholder={t('addUseCaseModal.stepGiven')}
+                  />
+                  <input
+                    className={styles.input}
+                    value={scenario.when}
+                    onChange={e => updateScenario(index, 'when', e.target.value)}
+                    placeholder={
+                      name.trim()
+                        ? t('addUseCaseModal.stepWhen', { name: name.trim() })
+                        : t('addUseCaseModal.stepWhenDefault')
+                    }
+                  />
+                  <input
+                    className={styles.input}
+                    value={scenario.then}
+                    onChange={e => updateScenario(index, 'then', e.target.value)}
+                    placeholder={t('addUseCaseModal.stepThen')}
+                  />
+                </div>
+              ))}
+            </div>
           </div>
           <div className={styles.footer}>
             <button

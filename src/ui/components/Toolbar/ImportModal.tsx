@@ -7,43 +7,76 @@ import { parseToon } from '../../../diagram/infrastructure/ToonParser';
 import type { DiagramFormat } from '../../../diagram/infrastructure/formatDetector';
 import styles from './ImportModal.module.css';
 
-interface ImportModalProps {
-  onClose: () => void;
-  onImport: (json: string) => void;
+type ImportSourceFormat = Exclude<DiagramFormat, 'unknown'>;
+
+export interface ImportResult {
+  architectureJson: string;
+  useCasesJson: string | null;
+  sourceFormat: ImportSourceFormat;
 }
 
-function processContent(
-  content: string,
-  format: DiagramFormat | 'auto',
-  t: (key: string) => string,
-): string {
-  const trimmed = content.trim();
-  const detectedFormat = format === 'auto' ? detectFormat(trimmed) : format;
+interface ImportModalProps {
+  onClose: () => void;
+  onImport: (payload: ImportResult) => void;
+}
 
-  switch (detectedFormat) {
+function splitImportedDiagram(rawDiagram: unknown, t: (key: string) => string): ImportResult {
+  if (typeof rawDiagram !== 'object' || rawDiagram === null || Array.isArray(rawDiagram)) {
+    throw new Error(t('importModal.errorJsonObject'));
+  }
+
+  const diagram = rawDiagram as Record<string, unknown>;
+  const useCases = diagram.useCases;
+  const architectureData = { ...diagram };
+  delete architectureData.useCases;
+
+  return {
+    architectureJson: JSON.stringify(architectureData, null, 2),
+    useCasesJson: Array.isArray(useCases) ? JSON.stringify(useCases, null, 2) : null,
+    sourceFormat: 'json',
+  };
+}
+
+function processContent(content: string, format: DiagramFormat | 'auto', t: (key: string) => string): ImportResult {
+  const trimmed = content.trim();
+  const detected = format === 'auto' ? detectFormat(trimmed) : format;
+
+  if (detected === 'unknown') {
+    throw new Error(t('importModal.errorDetect'));
+  }
+
+  switch (detected) {
     case 'mermaid': {
       const diagram = parseMermaidClassDiagram(trimmed);
       if (diagram.entities.length === 0) {
         throw new Error(t('importModal.errorNoClasses'));
       }
-      return JSON.stringify(diagram, null, 2);
+      return {
+        architectureJson: JSON.stringify(diagram, null, 2),
+        useCasesJson: null,
+        sourceFormat: 'mermaid',
+      };
     }
     case 'plantuml': {
       const diagram = parsePlantUmlClassDiagram(trimmed);
       if (diagram.entities.length === 0) {
         throw new Error(t('importModal.errorNoClasses'));
       }
-      return JSON.stringify(diagram, null, 2);
+      return {
+        architectureJson: JSON.stringify(diagram, null, 2),
+        useCasesJson: null,
+        sourceFormat: 'plantuml',
+      };
     }
     case 'toon': {
       const diagram = parseToon(trimmed);
-      return JSON.stringify(diagram, null, 2);
+      const split = splitImportedDiagram(diagram, t);
+      return { ...split, sourceFormat: 'toon' };
     }
-    case 'json':
-      JSON.parse(trimmed);
-      return trimmed;
-    default:
-      throw new Error(t('importModal.errorDetect'));
+    case 'json': {
+      const parsed = JSON.parse(trimmed);
+      return splitImportedDiagram(parsed, t);
+    }
   }
 }
 
@@ -72,8 +105,8 @@ export const ImportModal = forwardRef<HTMLDialogElement, ImportModalProps>(funct
     }
 
     try {
-      const json = processContent(trimmed, format, t);
-      onImport(json);
+      const payload = processContent(trimmed, format, t);
+      onImport(payload);
       onClose();
     } catch (e) {
       setError(e instanceof Error ? e.message : t('importModal.errorParse'));
@@ -97,10 +130,12 @@ export const ImportModal = forwardRef<HTMLDialogElement, ImportModalProps>(funct
       let fileFormat: DiagramFormat | 'auto' = 'auto';
       if (file.name.endsWith('.json')) fileFormat = 'json';
       else if (file.name.endsWith('.toon')) fileFormat = 'toon';
+      else if (file.name.endsWith('.mmd')) fileFormat = 'mermaid';
+      else if (file.name.endsWith('.puml')) fileFormat = 'plantuml';
 
       try {
-        const json = processContent(content, fileFormat, t);
-        onImport(json);
+        const payload = processContent(content, fileFormat, t);
+        onImport(payload);
         onClose();
       } catch (err) {
         setError(err instanceof Error ? err.message : t('importModal.errorParse'));

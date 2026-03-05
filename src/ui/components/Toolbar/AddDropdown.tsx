@@ -5,17 +5,21 @@ import styles from './Dropdown.module.css';
 interface AddDropdownProps {
   entityCount: number;
   onAddEntity: () => void;
+  onAddActor: () => void;
   onAddRelationship: () => void;
   onAddUseCase: () => void;
   onAddEndpoint: () => void;
+  onAddRule: () => void;
 }
 
 export function AddDropdown({
   entityCount,
   onAddEntity,
+  onAddActor,
   onAddRelationship,
   onAddUseCase,
   onAddEndpoint,
+  onAddRule,
 }: AddDropdownProps) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
@@ -78,6 +82,14 @@ export function AddDropdown({
           </button>
           <button
             className={styles.menuItem}
+            onClick={() => handleItemClick(onAddActor)}
+            type="button"
+            role="menuitem"
+          >
+            {t('toolbar.addActor')}
+          </button>
+          <button
+            className={styles.menuItem}
             onClick={() => handleItemClick(onAddRelationship)}
             disabled={entityCount < 2}
             type="button"
@@ -101,6 +113,15 @@ export function AddDropdown({
             role="menuitem"
           >
             {t('toolbar.addEndpoint')}
+          </button>
+          <button
+            className={styles.menuItem}
+            onClick={() => handleItemClick(onAddRule)}
+            disabled={entityCount === 0}
+            type="button"
+            role="menuitem"
+          >
+            {t('toolbar.addRule')}
           </button>
         </div>
       )}

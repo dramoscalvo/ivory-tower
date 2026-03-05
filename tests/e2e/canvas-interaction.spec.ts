@@ -101,4 +101,25 @@ test.describe('Canvas Interaction', () => {
     await expect(svg.getByText('UserUtils', { exact: true })).toBeVisible();
     await expect(svg.getByText('IAuthenticatable')).toBeVisible();
   });
+
+  test('entity search supports keyboard selection', async ({ page }) => {
+    await page.goto('/');
+
+    const searchButton = page.locator('button[title="Search entities"]');
+    await searchButton.click();
+
+    const searchInput = page.locator('input[placeholder="Search entities..."]');
+    await expect(searchInput).toBeVisible();
+    await searchInput.fill('user');
+
+    const options = page.locator('[role="option"]');
+    await expect(options.first()).toBeVisible();
+    await expect(options.first()).toHaveAttribute('aria-selected', 'true');
+
+    await searchInput.press('ArrowDown');
+    await expect(options.nth(1)).toHaveAttribute('aria-selected', 'true');
+
+    await searchInput.press('Enter');
+    await expect(searchInput).not.toBeVisible();
+  });
 });
